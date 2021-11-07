@@ -45,3 +45,16 @@
 - 좌측 사이드바 메뉴의 전자결재·메일·설문·메신저에서 자신이 처리해야 할 업무(문서) 및 메신저 채팅 개수를 조회
 - 헤더 우측 종 아이콘의 NEW 표시로 알람 여부를 확인할 수 있고 사용자가 작성한 전자결재 문서 승인 및 설문 완료, 메일 수신 시 해당 알림 등록<br>
   해당 알림을 클릭하여 해당 문서로 이동 시, 알람 확인 처리
+<br><br>
+
+### 4. 캘린더
+![캘린더 홈](https://user-images.githubusercontent.com/80368534/140640522-191b1206-ee82-4448-aa23-2dc03d461222.PNG)
+![캘린더 홈2](https://user-images.githubusercontent.com/80368534/140640653-0c0c49f0-6ded-4b17-a03d-cdd7131e4a27.PNG)
+- <strong>FullCalendar 라이브러리 활용</strong>
+- FullCalendar extendedProps 속성을 이용하여 DB의 데이터들을 저장하고 Ajax로 캘린더를 생성하여 일정 조회
+- FullCalendar select 함수를 이용하여 날짜 선택 및 드래그로 일정 등록
+- FullCalendar eventClick 함수를 이용하여 일정 상세 조회를 할 수 있고 상세조회 시 일정을 수정·삭제할 수 있음
+- 사용자가 원하는 카테고리를 생성, 카테고리 색 변경, 카테고리 삭제(카테고리 삭제 시 해당 카테고리와 관련된 모든 일정 삭제)
+- FullCalendar eventDidMount 함수를 이용하여 사용자가 선택한 카테고리별 일정을 조회
+
+
