@@ -50,7 +50,7 @@
 ### 4. 캘린더
 ![캘린더 홈](https://user-images.githubusercontent.com/80368534/140640522-191b1206-ee82-4448-aa23-2dc03d461222.PNG)
 ![캘린더 홈2](https://user-images.githubusercontent.com/80368534/140640653-0c0c49f0-6ded-4b17-a03d-cdd7131e4a27.PNG)
-- <strong>FullCalendar 라이브러리 활용</strong>
+- <strong>FullCalendar 라이브러리</strong> 활용
 - FullCalendar extendedProps 속성을 이용하여 DB의 데이터들을 저장하고 Ajax로 캘린더를 생성하여 일정 조회
 - FullCalendar select 함수를 이용하여 날짜 선택 및 드래그로 일정 등록
 - FullCalendar eventClick 함수를 이용하여 일정 상세 조회를 할 수 있고 상세조회 시 일정을 수정·삭제할 수 있음
@@ -84,9 +84,18 @@
 
 ![설문 - 설문상세조회](https://user-images.githubusercontent.com/80368534/140640943-543eca09-d716-4a98-8dd6-eae86bdcba10.PNG)
 ![설문 - 설문상세조회2](https://user-images.githubusercontent.com/80368534/140640945-a4bef2ec-a285-4b36-af08-bfd0b95ff591.PNG)
-- 선택형 문항의 경우 해당 문항 결과를 Chart js API를 활용하여 도넛차트로 한 눈에 확인
+- 선택형 문항의 경우 해당 문항 결과를 <strong>Chart js API</strong>를 활용하여 도넛차트로 한 눈에 확인
 - 설문 상세 페이지에서 댓글 작성·수정·삭제 기능
 - 설문 작성자는 설문의 상태를 진행/중지/마감 상태로 변경할 수 있고, 수정 중이거나 마감 상태 시 설문 응답 불가
+<br><br>
 
+### 7. 조직도
+![조직도](https://user-images.githubusercontent.com/80368534/140641218-1e91c641-053e-4d44-a1a6-3bf2217c9a4b.PNG)
+![조직도 - 사원상세조회](https://user-images.githubusercontent.com/80368534/140641222-f543df5d-c373-49bc-91c1-53d8a2538fca.PNG)
+- <strong>jsTree jQuery plugin</strong> 활용
+- 조직도 클릭 시, modal로 조직도를 띄워주며 회사의 조직도를 트리구조의 형식으로 조회
+- 사원 선택 시, 해당 사원의 사진, 이름, 소속 등 기본정보를 modal로 확인
+- 이름·부서·직책을 통한 검색 기능 구현
+- 전역변수(flag)를 이용해 전자결재·메일·보고·설문에서 각각 활용할 수 있게함
 
 
