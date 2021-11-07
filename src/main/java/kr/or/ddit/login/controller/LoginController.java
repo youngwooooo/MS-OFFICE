@@ -1,0 +1,76 @@
+package kr.or.ddit.login.controller;
+
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+
+import kr.or.ddit.login.service.LoginService;
+import kr.or.ddit.login.vo.EmpVO;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Controller
+public class LoginController {
+	
+	private Logger logger = LoggerFactory.getLogger(this.getClass());
+	
+	@Autowired
+	private LoginService loginService;
+	
+	@RequestMapping(value="/login", method=RequestMethod.GET)
+	public String login() {
+		return "/exception/login";
+	}
+	
+	@RequestMapping(value="/login", method=RequestMethod.POST)
+	public String loginPost(@ModelAttribute EmpVO empVo, HttpServletRequest request) {
+		
+		logger.info(empVo.getEmpno());
+		logger.info(empVo.getPassword());
+		
+		EmpVO empVo2 = this.loginService.login(empVo);
+		
+		if(empVo2 == null) {
+			request.setAttribute("msg", "fail");
+			return "/exception/login";
+		}
+		
+		logger.info(empVo2.getNm());
+		logger.info(empVo2.getDeptCode());
+		logger.info("empVo2 : " + empVo2);
+		
+		// 파일 경로 포맷팅
+		if(empVo2.getFileCours() != null) {
+			String beforeFileCours = empVo2.getFileCours().replaceAll("\\\\", "/");
+			String url = "/resources/upload/";
+			String fileCours = url + beforeFileCours;
+			empVo2.setFileCours(fileCours);
+		}
+		
+		HttpSession session = request.getSession();
+		session.setAttribute("empVo", empVo2);
+
+		return "redirect:/index";
+	}
+
+	
+	@GetMapping("/logout")
+	public String logout(HttpSession session) {
+		if(session.getAttribute("empVo") != null) {
+			session.invalidate();
+		}
+		return "redirect:/login";
+	}
+	
+}

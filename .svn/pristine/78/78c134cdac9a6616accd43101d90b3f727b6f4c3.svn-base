@@ -1,0 +1,39 @@
+package kr.or.ddit.common.controller;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Controller
+public class CommonController {
+	
+	@GetMapping("/")
+	public String indexLTE() {
+		return "/index";
+	}
+	
+	@GetMapping("/index")
+	public String index() {
+		return "common/index";
+	}
+	
+	@GetMapping("/content")
+	public String leftMenu() {
+		return "common/content";
+	}
+	
+	
+	@GetMapping("/calendar")
+	public String calendar() {
+		return "common/calendar";
+	}
+
+	
+	
+	
+	
+	
+}

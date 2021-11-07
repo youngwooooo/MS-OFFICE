@@ -1,0 +1,728 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.EA.mapper.EAMapper">
+
+	<!-- 반려가 되었을 때 기안 작성자에게 알람이 감-->
+	<insert id="drftRejectAlarm" parameterType="hashMap">
+	INSERT INTO tb_new (
+	    new_no
+	   ,new_empno
+	   ,new_cn
+	   ,wrting_dt
+	   ,new_at
+	   ,doc_no
+	   ,doc_category
+	) VALUES (
+	    (select nvl(max(new_no), 0) + 1 from tb_new)
+	   ,(SELECT empno FROM tb_drft where drft_no = #{drftNo})
+	   ,'기안서가 반려되었습니다.'
+	   ,sysdate
+	   ,'N'
+	   ,#{drftNo}
+	   ,'EA'
+	)
+	</insert>
+	
+	
+	<!-- 최종 승인이 되었을 때 기안 작성자에게 알람이 감-->
+	<insert id="drftAlarm" parameterType="hashMap">
+	INSERT INTO tb_new (
+	    new_no
+	   ,new_empno
+	   ,new_cn
+	   ,wrting_dt
+	   ,new_at
+	   ,doc_no
+	   ,doc_category
+	) VALUES (
+	    (select nvl(max(new_no), 0) + 1 from tb_new)
+	   ,(SELECT empno FROM tb_drft where drft_no = #{drftNo})
+	   ,'기안서가 승인되었습니다.'
+	   ,sysdate
+	   ,'N'
+	   ,#{drftNo}
+	   ,'EA'
+	)
+	
+	</insert>
+
+	<select id="getEACount" parameterType="String" resultType="int">
+		SELECT
+			count(R.drft_no)
+		FROM
+			(select 
+			    ROW_NUMBER() OVER(ORDER BY drft_no desc) RNUM
+			    ,a.drft_no
+			    ,a.empno
+			    ,d.nm
+			    ,a.sanctn_no
+			    ,a.form_no
+			    ,E.Form_Nm
+			    ,a.drft_progrs_code
+			    ,f.nm drftProgrsNm
+			    ,a.scrty_grad_code
+			    ,a.writng_tm
+			    ,a.updt_tm
+			    ,a.updt_empno
+			    ,a.cn
+			    ,a.sj
+			    ,a.file_no
+			    ,a.dept_code
+			    ,b.nm deptNm
+			    ,a.co_dept_code
+			    ,c.nm coDeptNm
+			    ,a.complete_tm
+			from
+			    (SELECT
+			        ROW_NUMBER() OVER(partition by sanctn_no order by ordr asc) rwnum
+			       ,sanctn_no
+			       ,ordr
+			       ,sanctner_empno
+			       ,sanc_code
+			       ,return_cn
+			       ,sanctn_tm
+			    FROM
+			        tb_sanctn_detail
+			    where sanc_code is null
+			    order by Sanctn_No) R, tb_drft a, Tb_Unity_Code b, Tb_Unity_Code c, tb_empl d, tb_form e, Tb_Unity_Code f
+			where rwnum = 1
+			and R.sanctner_empno = #{empno}
+			and b.Code = a.Dept_Code
+			and c.code = a.Co_Dept_Code
+			and a.empno = d.empno
+			and a.Form_No = e.Form_No
+			and a.Drft_Progrs_Code = f.code
+			and a.Sanctn_No = R.Sanctn_No
+			order by a.drft_no desc) R	
+	</select>
+
+
+	<!-- 홈에서 완료된 기안서 5개까지 -->
+	<select id="complDrftList" resultType="kr.or.ddit.EA.vo.DrftVO">
+	SELECT R.* 
+		FROM
+			(SELECT
+				ROW_NUMBER() OVER(ORDER BY drft_no desc) RNUM
+			   ,a.drft_no
+			   ,a.empno
+			   ,d.nm
+			   ,a.sanctn_no
+			   ,a.form_no
+			   ,E.Form_Nm
+			   ,a.drft_progrs_code
+			   ,f.nm drftProgrsNm
+			   ,a.scrty_grad_code
+			   ,a.writng_tm
+			   ,a.updt_tm
+			   ,a.updt_empno
+			   ,a.cn
+			   ,a.sj
+			   ,a.file_no
+			   ,a.dept_code
+			   ,b.nm deptNm
+			   ,a.co_dept_code
+			   ,c.nm coDeptNm
+			   ,a.complete_tm
+			FROM
+			    tb_drft a, Tb_Unity_Code b, Tb_Unity_Code c, tb_empl d, tb_form e, Tb_Unity_Code f
+			where b.Code = a.Dept_Code
+			and c.code = a.Co_Dept_Code
+			and a.empno = d.empno
+            and a.drft_progrs_code = 'R104'
+			and a.Form_No = e.Form_No
+			and a.Drft_Progrs_Code = f.code
+			ORDER BY drft_no desc) R
+			WHERE R.RNUM BETWEEN 1 AND 5
+	</select>
+
+	<!-- 홈에서 진행중인 기안서 5개까지 -->
+	<select id="procDrftList" resultType="kr.or.ddit.EA.vo.DrftVO">
+	SELECT R.* 
+		FROM
+			(SELECT
+				ROW_NUMBER() OVER(ORDER BY drft_no desc) RNUM
+			   ,a.drft_no
+			   ,a.empno
+			   ,d.nm
+			   ,a.sanctn_no
+			   ,a.form_no
+			   ,E.Form_Nm
+			   ,a.drft_progrs_code
+			   ,f.nm drftProgrsNm
+			   ,a.scrty_grad_code
+			   ,a.writng_tm
+			   ,a.updt_tm
+			   ,a.updt_empno
+			   ,a.cn
+			   ,a.sj
+			   ,a.file_no
+			   ,a.dept_code
+			   ,b.nm deptNm
+			   ,a.co_dept_code
+			   ,c.nm coDeptNm
+			   ,a.complete_tm
+			FROM
+			    tb_drft a, Tb_Unity_Code b, Tb_Unity_Code c, tb_empl d, tb_form e, Tb_Unity_Code f
+			where b.Code = a.Dept_Code
+			and c.code = a.Co_Dept_Code
+			and a.empno = d.empno
+            and a.drft_progrs_code = 'R103'
+			and a.Form_No = e.Form_No
+			and a.Drft_Progrs_Code = f.code
+			ORDER BY drft_no desc) R
+			WHERE R.RNUM BETWEEN 1 AND 5
+	</select>
+
+	<!-- 홈에서 자기가 신청한 기안서 최근 4개까지 -->
+	<select id="myDrftList" parameterType="String" resultType="kr.or.ddit.EA.vo.DrftVO">
+	SELECT R.* 
+		FROM
+			(SELECT
+				ROW_NUMBER() OVER(ORDER BY drft_no desc) RNUM
+			   ,a.drft_no
+			   ,a.empno
+			   ,d.nm
+			   ,a.sanctn_no
+			   ,a.form_no
+			   ,E.Form_Nm
+			   ,a.drft_progrs_code
+			   ,f.nm drftProgrsNm
+			   ,a.scrty_grad_code
+			   ,a.writng_tm
+			   ,a.updt_tm
+			   ,a.updt_empno
+			   ,a.cn
+			   ,a.sj
+			   ,a.file_no
+			   ,a.dept_code
+			   ,b.nm deptNm
+			   ,a.co_dept_code
+			   ,c.nm coDeptNm
+			   ,a.complete_tm
+			FROM
+			    tb_drft a, Tb_Unity_Code b, Tb_Unity_Code c, tb_empl d, tb_form e, Tb_Unity_Code f
+			where b.Code = a.Dept_Code
+			and c.code = a.Co_Dept_Code
+			and a.empno = d.empno
+            and a.empno = #{empno}
+			and a.Form_No = e.Form_No
+			and a.Drft_Progrs_Code = f.code
+			
+			ORDER BY drft_no desc) R
+			WHERE R.RNUM BETWEEN 1 AND 4
+	</select>
+
+	<!-- 휴가 테이블에 추가 -->
+	<insert id="vacationInsert" parameterType="kr.or.ddit.EA.vo.DrftVO">
+	INSERT INTO tb_vcatn (
+	    drft_no
+	   ,sanctn_code
+	   ,empno
+	   ,writng_tm
+	   ,vcatn_nm
+	   ,vcatn_de
+	   ,rm
+	   ,begin_de
+	   ,end_de
+	   ,use_at
+	   ,half_day_at
+	   ,updt_empno
+	   ,updt_tm
+	) VALUES (
+	    (select max(drft_no) from tb_drft)
+	   ,'R103'
+	   ,#{empno}
+	   ,sysdate
+	   ,'휴가'
+	   ,#{vcatnDe}
+	   ,null
+	   ,TO_DATE(#{beginDe}, 'YYYY-MM-DD')
+	   ,TO_DATE(#{endDe}, 'YYYY-MM-DD')
+	   ,'N'
+	   ,'N'
+	   ,null
+	   ,null
+	)
+	</insert>
+
+	<!-- 앞에서 반려를 찍고 나머지 사람들을 null에서 공백값으로 바꿈 -->
+	<update id="lineSpace" parameterType="hashMap">
+		UPDATE tb_sanctn_detail
+	 	   SET
+		       sanc_code = ' '
+		 WHERE
+		       sanctn_no = 
+                         (SELECT
+								a.sanctn_no
+                             FROM
+                                  tb_sanctn_detail a, tb_drft b
+                            where
+                              b.drft_no = #{drftNo}
+                              and a.sanctn_no = B.Sanctn_No
+                            group by a.sanctn_no)
+           and sanc_code is null
+	</update>
+
+	<!-- 결재선에 해당 승인자가 반려를 찍음 -->
+	<update id="lineReject" parameterType="hashMap">
+		UPDATE tb_sanctn_detail
+	 	   SET
+		       sanc_code = 'R102'
+		       ,SANCTN_TM = sysdate
+		 WHERE
+		       sanctn_no = (
+		                   select R.sanctn_no
+		                     from
+		                         (SELECT
+		                             ROW_NUMBER() OVER(partition by a.sanctn_no order by ordr asc) rwnum
+		                            ,a.sanctn_no
+		                             FROM
+		                                  tb_sanctn_detail a, tb_drft b
+		                            where
+		                                  a.sanctner_empno = #{empno}
+		                              and b.drft_no = #{drftNo}
+		                              and a.sanctn_no = B.Sanctn_No
+		                              and a.sanc_code is null) R
+		                    where rwnum = 1 
+                )
+           and sanctner_empno = #{empno}
+	</update>
+
+	<!-- 기안서에다가 반려찍고 완료 시간에 지금 시간 넣음-->
+	<update id="drftReject" parameterType="hashMap">
+		UPDATE tb_drft
+		   SET
+		       drft_progrs_code = 'R102'
+		       ,complete_tm = sysdate
+		 WHERE
+		       drft_no = #{drftNo}
+	</update>
+	<update id="vacationLastUpdate" parameterType="hashMap">
+	UPDATE tb_vcatn
+		SET
+			sanctn_code = 'R104'
+	WHERE
+		drft_no = #{drftNo}
+	</update>
+	<update id="drftLastUpdate" parameterType="hashMap">
+	UPDATE tb_drft
+	    SET
+	        Drft_Progrs_Code = 'R104'
+	        ,complete_tm = sysdate
+	WHERE
+	    drft_no = #{drftNo} 
+	</update>
+
+	<select id="selectLineByDrftNo" parameterType="hashMap" resultType="kr.or.ddit.EA.vo.LineVO">
+	SELECT
+	    a.sanctn_no
+	    ,a.ordr
+	    ,a.sanctner_empno
+	    ,a.sanc_code
+	    ,a.return_cn
+	    ,a.sanctn_tm
+	FROM
+	    tb_sanctn_detail a, tb_drft b
+	where
+	    a.sanctn_no = b.Sanctn_No
+	and
+	    b.drft_no = #{drftNo}
+	
+	</select>
+
+	<!-- 승인 -->
+	<update id="drftUpdate" parameterType="hashMap">
+		UPDATE tb_sanctn_detail
+	 	   SET
+		       sanc_code = 'R101'
+		       ,SANCTN_TM = sysdate
+		 WHERE
+		       sanctn_no = (
+		                   select R.sanctn_no
+		                     from
+		                         (SELECT
+		                             ROW_NUMBER() OVER(partition by a.sanctn_no order by ordr asc) rwnum
+		                            ,a.sanctn_no
+		                             FROM
+		                                  tb_sanctn_detail a, tb_drft b
+		                            where
+		                                  a.sanctner_empno = #{empno}
+		                              and b.drft_no = #{drftNo}
+		                              and a.sanctn_no = B.Sanctn_No
+		                              and a.sanc_code is null) R
+		                    where rwnum = 1 
+                )
+           and  sanctner_empno = #{empno}
+           
+	</update>
+
+	<select id="selectWaitCount" parameterType="hashMap" resultType="int">
+		SELECT
+			count(R.drft_no)
+		FROM
+			(select 
+			    ROW_NUMBER() OVER(ORDER BY drft_no desc) RNUM
+			    ,a.drft_no
+			    ,a.empno
+			    ,d.nm
+			    ,a.sanctn_no
+			    ,a.form_no
+			    ,E.Form_Nm
+			    ,a.drft_progrs_code
+			    ,f.nm drftProgrsNm
+			    ,a.scrty_grad_code
+			    ,a.writng_tm
+			    ,a.updt_tm
+			    ,a.updt_empno
+			    ,a.cn
+			    ,a.sj
+			    ,a.file_no
+			    ,a.dept_code
+			    ,b.nm deptNm
+			    ,a.co_dept_code
+			    ,c.nm coDeptNm
+			    ,a.complete_tm
+			from
+			    (SELECT
+			        ROW_NUMBER() OVER(partition by sanctn_no order by ordr asc) rwnum
+			       ,sanctn_no
+			       ,ordr
+			       ,sanctner_empno
+			       ,sanc_code
+			       ,return_cn
+			       ,sanctn_tm
+			    FROM
+			        tb_sanctn_detail
+			    where sanc_code is null
+			    order by Sanctn_No) R, tb_drft a, Tb_Unity_Code b, Tb_Unity_Code c, tb_empl d, tb_form e, Tb_Unity_Code f
+			where rwnum = 1
+			and R.sanctner_empno = #{empno}
+			and b.Code = a.Dept_Code
+			and c.code = a.Co_Dept_Code
+			and a.empno = d.empno
+			and a.Form_No = e.Form_No
+			and a.Drft_Progrs_Code = f.code
+			and a.Sanctn_No = R.Sanctn_No
+			<choose>
+					<when test="selSearch=='' and selSearch.equals('')">
+						AND d.NM || a.SJ || a.CN LIKE '%' || #{keyword} || '%'
+					</when>
+					<otherwise>
+						<if test="selSearch!='' and selSearch.equals('nm')">
+						AND d.NM LIKE '%' || #{keyword} || '%'
+						</if>
+						<if test="selSearch!='' and selSearch.equals('sj')">
+						AND a.SJ LIKE '%' || #{keyword} || '%'
+						</if>
+						<if test="selSearch!='' and selSearch.equals('cn')">
+						AND a.CN LIKE '%' || #{keyword} || '%'
+						</if>
+						<if test="selSearch!='' and selSearch.equals('dept')">
+						AND b.nm LIKE '%' || #{keyword} || '%'
+						</if>
+						<if test="selSearch!='' and selSearch.equals('coDept')">
+						AND c.nm LIKE '%' || #{keyword} || '%'
+						</if>
+					</otherwise>
+				</choose>
+			order by a.drft_no desc) R
+	</select>
+
+	<select id="selectAllWait" parameterType="hashMap" resultType="kr.or.ddit.EA.vo.DrftVO">
+	SELECT
+		R.*
+	FROM
+		(select 
+		    ROW_NUMBER() OVER(ORDER BY drft_no desc) RNUM
+		    ,a.drft_no
+		    ,a.empno
+		    ,d.nm
+		    ,a.sanctn_no
+		    ,a.form_no
+		    ,E.Form_Nm
+		    ,a.drft_progrs_code
+		    ,f.nm drftProgrsNm
+		    ,a.scrty_grad_code
+		    ,a.writng_tm
+		    ,a.updt_tm
+		    ,a.updt_empno
+		    ,a.cn
+		    ,a.sj
+		    ,a.file_no
+		    ,a.dept_code
+		    ,b.nm deptNm
+		    ,a.co_dept_code
+		    ,c.nm coDeptNm
+		    ,a.complete_tm
+		from
+		    (SELECT
+		        ROW_NUMBER() OVER(partition by sanctn_no order by ordr asc) rwnum
+		       ,sanctn_no
+		       ,ordr
+		       ,sanctner_empno
+		       ,sanc_code
+		       ,return_cn
+		       ,sanctn_tm
+		    FROM
+		        tb_sanctn_detail
+		    where sanc_code is null
+		    order by Sanctn_No) R, tb_drft a, Tb_Unity_Code b, Tb_Unity_Code c, tb_empl d, tb_form e, Tb_Unity_Code f
+		where rwnum = 1
+		and R.sanctner_empno = #{empno}
+		and b.Code = a.Dept_Code
+		and c.code = a.Co_Dept_Code
+		and a.empno = d.empno
+		and a.Form_No = e.Form_No
+		and a.Drft_Progrs_Code = f.code
+		and a.Sanctn_No = R.Sanctn_No
+		<choose>
+				<when test="selSearch=='' and selSearch.equals('')">
+					AND d.NM || a.SJ || a.CN LIKE '%' || #{keyword} || '%'
+				</when>
+				<otherwise>
+					<if test="selSearch!='' and selSearch.equals('nm')">
+					AND d.NM LIKE '%' || #{keyword} || '%'
+					</if>
+					<if test="selSearch!='' and selSearch.equals('sj')">
+					AND a.SJ LIKE '%' || #{keyword} || '%'
+					</if>
+					<if test="selSearch!='' and selSearch.equals('cn')">
+					AND a.CN LIKE '%' || #{keyword} || '%'
+					</if>
+					<if test="selSearch!='' and selSearch.equals('dept')">
+					AND b.nm LIKE '%' || #{keyword} || '%'
+					</if>
+					<if test="selSearch!='' and selSearch.equals('coDept')">
+					AND c.nm LIKE '%' || #{keyword} || '%'
+					</if>
+				</otherwise>
+			</choose>
+		order by a.drft_no desc) R
+		WHERE R.RNUM BETWEEN #{currentPage} * 12 - 11 AND #{currentPage} * 12
+	</select>
+
+	<select id="selectLine" parameterType="String" resultType="kr.or.ddit.EA.vo.LineVO">
+	SELECT
+	    sanctn_no
+	   ,ordr
+	   ,sanctner_empno
+	   ,sanc_code
+	   ,return_cn
+	   ,sanctn_tm
+	   ,tb_empl.nm
+	   ,A.nm ofcpsNm
+	   ,B.nm sancNm
+	FROM
+	    tb_sanctn_detail, tb_empl, Tb_Unity_Code A, Tb_Unity_Code B
+	where sanctn_no = #{sanctnNo}
+	and tb_empl.empno = tb_sanctn_detail.sanctner_empno
+	and A.code(+) = tb_empl.OFCPS_CODE
+	and B.code(+) = sanc_code
+	order by ordr asc
+	</select>
+
+	<select id="selectOne" parameterType="String" resultType="kr.or.ddit.EA.vo.DrftVO">
+		SELECT
+		   a.drft_no
+		   ,a.empno
+		   ,d.nm
+		   ,a.sanctn_no
+		   ,a.form_no
+		   ,E.Form_Nm
+		   ,a.drft_progrs_code
+		   ,f.nm drftProgrsNm
+		   ,a.scrty_grad_code
+		   ,a.writng_tm
+		   ,a.updt_tm
+		   ,a.updt_empno
+		   ,a.cn
+		   ,a.sj
+		   ,a.file_no
+		   ,a.dept_code
+		   ,b.nm deptNm
+		   ,a.co_dept_code
+		   ,c.nm coDeptNm
+		   ,a.complete_tm
+		   ,g.nm ofcpsNm
+		   ,h.begin_de
+		   ,h.end_de
+		   ,h.vcatn_de
+		FROM
+		    tb_drft a, Tb_Unity_Code b, Tb_Unity_Code c, tb_empl d, tb_form e, Tb_Unity_Code f
+		    ,Tb_Unity_Code g
+		, tb_vcatn h
+		    
+		where b.Code = a.Dept_Code
+		and c.code = a.Co_Dept_Code
+		and a.empno = d.empno
+		and a.Form_No = e.Form_No
+		and a.Drft_Progrs_Code = f.code
+		and a.drft_no = #{drftNo}
+		and d.OFCPS_CODE = g.code
+		and h.drft_no(+) = a.drft_no
+	</select>
+
+	<select id="selectCount" parameterType="hashMap" resultType="int">
+		select count(drft_no)
+		from tb_drft, tb_empl, tb_unity_code a, tb_unity_code b, tb_unity_code c
+		where tb_empl.empno = tb_drft.empno
+		and Tb_Drft.Dept_Code = a.code
+		and Tb_Drft.Co_Dept_Code = b.code
+		and tb_drft.Drft_Progrs_Code = c.code
+		and c.nm LIKE '%' || #{drftProgrsNm} || '%'
+		<if test="coDeptNm != null">
+			and b.nm = #{coDeptNm}
+		</if>
+		<choose>
+			<when test="selSearch=='' and selSearch.equals('')">
+				AND a.nm || b.nm || tb_empl.NM || tb_drft.SJ || tb_drft.CN LIKE '%' || #{keyword} || '%'
+			</when>
+			<otherwise>
+				<if test="selSearch!='' and selSearch.equals('nm')">
+				AND tb_empl.NM LIKE '%' || #{keyword} || '%'
+				</if>
+				<if test="selSearch!='' and selSearch.equals('sj')">
+				AND tb_drft.SJ LIKE '%' || #{keyword} || '%'
+				</if>
+				<if test="selSearch!='' and selSearch.equals('cn')">
+				AND tb_drft.CN LIKE '%' || #{keyword} || '%'
+				</if>
+				<if test="selSearch!='' and selSearch.equals('dept')">
+				AND a.nm LIKE '%' || #{keyword} || '%'
+				</if>
+				<if test="selSearch!='' and selSearch.equals('coDept')">
+				AND b.nm LIKE '%' || #{keyword} || '%'
+				</if>
+			</otherwise>
+		</choose>
+	</select>
+
+	<!-- 조건 있이 일부 기안서를 조회 -->
+	<select id="selectAll" resultType="kr.or.ddit.EA.vo.DrftVO">
+		SELECT R.* 
+		FROM
+			(SELECT
+				ROW_NUMBER() OVER(ORDER BY drft_no desc) RNUM
+			   ,a.drft_no
+			   ,a.empno
+			   ,d.nm
+			   ,a.sanctn_no
+			   ,a.form_no
+			   ,E.Form_Nm
+			   ,a.drft_progrs_code
+			   ,f.nm drftProgrsNm
+			   ,a.scrty_grad_code
+			   ,a.writng_tm
+			   ,a.updt_tm
+			   ,a.updt_empno
+			   ,a.cn
+			   ,a.sj
+			   ,a.file_no
+			   ,a.dept_code
+			   ,b.nm deptNm
+			   ,a.co_dept_code
+			   ,c.nm coDeptNm
+			   ,a.complete_tm
+			FROM
+			    tb_drft a, Tb_Unity_Code b, Tb_Unity_Code c, tb_empl d, tb_form e, Tb_Unity_Code f
+			where b.Code = a.Dept_Code
+			and c.code = a.Co_Dept_Code
+			and a.empno = d.empno
+			and a.Form_No = e.Form_No
+			and a.Drft_Progrs_Code = f.code
+			and f.nm LIKE '%' || #{drftProgrsNm} || '%'
+			<if test="coDeptNm != null">
+				and b.nm = #{coDeptNm}
+			</if>
+			<choose>
+				<when test="selSearch=='' and selSearch.equals('')">
+					AND d.nm || b.nm || d.NM || a.SJ || a.CN LIKE '%' || #{keyword} || '%'
+				</when>
+				<otherwise>
+					<if test="selSearch!='' and selSearch.equals('nm')">
+					AND d.NM LIKE '%' || #{keyword} || '%'
+					</if>
+					<if test="selSearch!='' and selSearch.equals('sj')">
+					AND a.SJ LIKE '%' || #{keyword} || '%'
+					</if>
+					<if test="selSearch!='' and selSearch.equals('cn')">
+					AND a.CN LIKE '%' || #{keyword} || '%'
+					</if>
+					<if test="selSearch!='' and selSearch.equals('dept')">
+					AND a.nm LIKE '%' || #{keyword} || '%'
+					</if>
+					<if test="selSearch!='' and selSearch.equals('coDept')">
+					AND b.nm LIKE '%' || #{keyword} || '%'
+					</if>
+				</otherwise>
+			</choose>
+			ORDER BY drft_no desc) R
+			WHERE R.RNUM BETWEEN #{currentPage} * 12 - 11 AND #{currentPage} * 12
+			
+	</select>
+
+	<!-- 결재선을 추가하기 위해서 마지막 결재선 번호를 조회 -->
+	<select id="lastLineNo" resultType="String">
+		SELECT
+		    nvl(max(sanctn_no), 0) + 1 sanctn_no
+		FROM
+		    tb_sanctn_detail
+	</select>
+
+	<!-- 기안서 추가를 위해서 먼저 결재선을 추가 -->
+	<insert id="lineInsert" parameterType="empVo">
+		INSERT INTO tb_sanctn_detail (
+		    sanctn_no
+		   ,ordr
+		   ,sanctner_empno
+		   ,sanc_code
+		   ,return_cn
+		   ,sanctn_tm
+		) VALUES (
+		    #{lineNo}
+		   ,#{ordr}
+		   ,#{empno}
+		   ,null
+		   ,null
+		   ,null
+		)
+	</insert>
+	
+	<!-- 결재선 추가 -->
+	<insert id="drftInsert" parameterType="kr.or.ddit.EA.vo.DrftVO">
+		INSERT INTO tb_drft (
+		    drft_no
+		   ,empno
+		   ,sanctn_no
+		   ,form_no
+		   ,drft_progrs_code
+		   ,scrty_grad_code
+		   ,writng_tm
+		   ,updt_tm
+		   ,updt_empno
+		   ,cn
+		   ,sj
+		   ,file_no
+		   ,dept_code
+		   ,co_dept_code
+		) VALUES (
+		    (SELECT
+			    nvl(max(drft_no),0) + 1 drft_no
+			FROM
+			    tb_drft)
+		   ,#{empno}
+		   ,#{sanctnNo}
+		   ,#{formNo}
+		   ,'R103'
+		   ,null
+		   ,sysdate
+		   ,null
+		   ,null
+		   ,#{cn}
+		   ,#{sj}
+		   ,#{fileNo}
+		   ,#{deptCode}
+		   ,#{coDeptCode}
+		)
+	
+	</insert>
+</mapper>

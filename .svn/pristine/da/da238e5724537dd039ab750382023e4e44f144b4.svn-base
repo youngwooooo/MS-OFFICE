@@ -1,0 +1,305 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<!-- 공통 css -->
+<link href="/resources/css/common/common.css" rel="stylesheet">
+<!-- 공통 js -->
+<script src="/resources/js/common/common.js"></script>
+<style>
+	.surveyResult {display: flex; padding-top: 20px; padding-bottom: 20px;}
+	.surveyResult span {border: 1px solid #dddddd; font-size: 0.8rem; padding: 10px 30px 10px 30px; margin-right: 10px; border-radius: 5px;}
+	.surveyResult span strong {display: block; font-size: 1.5rem;}
+	.surveyResult span .resultPoint {color: #ff5b5b;}
+	.surveyResult span .resultPercent {color: #009dff;}
+
+	.surveyDetailTitle {padding: 20px 10px 20px 10px;}
+	.surveyDetailTitle h3 {font-size: 1.5rem;}
+	
+	.surveyDetailRUD, .surveyDetailContent {padding: 10px 10px 20px 10px;}
+	.surveyDetailRUD a {padding: 10px; color: black; font-size: 0.9rem;}
+	.surveyDetailRUD a:hover {background-color: #f4f4f4;}
+	.surveyDetailRUD .surveyList {float: right;}
+	
+	.surveyDetailContent {border-top: 1px solid #dddddd; border-bottom: 1px solid #dddddd;}
+	.surveyInfo {padding: 20px 10px 20px 0px;}
+	.surveyInfo h3 {font-weight: bold; font-size: 1.5rem;}
+	.surveyInfo .table {margin-top: 15px;}
+	.surveyInfo .table td {border-color: white; font-size: 0.8rem; padding: 5px 5px 3px 5px; color: #888;}
+	.surveyInfo .table .trSurveyWriter > td:first-child {padding-top: 10px;}
+ 	.surveyInfo .table td img {width: 30px; height: 25px; border-radius: 50%;}
+	.surveyInfo .table .trSurveyEditOption > td:first-child, .trSurveyResultOption > td:first-child {padding-top: 6px;}
+	.surveyInfo .divSurveyDesc {padding: 20px; background-color: #f4f4f4; margin-top: 30px; margin-bottom: 30px;  word-break:break-all;}
+	.surveyInfo .divSurveyDesc p {margin: 0px; font-size: 0.9rem;}
+	
+	.divAddQuestionResultList {padding: 20px 10px 20px 10px;}
+	.divAddQuestionResultList span {font-weight: bold;}
+	.divAddQuestionResultList ul {list-style: none; margin-bottom: 0px; margin-top: 10px;}
+	.divAddQuestionResultList label {font-weight: normal !important; font-size: 0.9rem;}
+	
+	.surveyPointTypeResult, .surveySelectTypeResult {padding: 20px 10px 20px 10px;}
+	.surveyPointTypeResult p, .surveySelectTypeResult p {margin: 0px; font-weight: bold;}
+	.resulrChart {padding: 20px;}
+	.resulrChart canvas {margin-left: 20px;}
+		
+	.btnSurveySubmit {padding-top: 20px; padding-bottom: 20px; text-align: center;}
+	.btnSurveySubmit button {font-size: 0.9rem; border: 1px soild #55beff; background-color: #55beff; color: white;}
+	.btnSurveySubmit button:hover {border-color: #009dff; background-color: #009dff; color: white;}
+	
+	.surveyComment {padding: 20px 10px 20px 10px; min-height: 400px;}
+	.surveyComment .surveyCommentTitle {font-size: 0.9rem;}
+	.surveyComment .surveyCommentTitle {padding-bottom: 15px; border-bottom: 2px dotted #dddddd;}
+	.surveyComment .surveyMyComment {padding: 10px; display: flex;}
+	.surveyComment .surveyMyComment img {width: 40px; height: 35px; border-radius: 50%;}
+	.surveyComment .surveyMyComment input {width: 90%; margin-left: 10px; margin-right: 10px; font-size: 0.8rem; height: 30px;}
+	.surveyComment .surveyMyComment button {width: 70px; font-size: 0.8rem; border: 1px solid #888; height: 30px;}
+	.surveyComment .surveyMyComment button:hover {border-color: #f4f4f4; background-color: #f4f4f4;}
+	
+	.surveyCommentList {height: 100%; min-height: 60px; margin-top: 10px;}
+	.surveyCommentList ul {list-style: none;}
+	.surveyCommentList li {min-height: 50px; margin-bottom: 5px;  word-break:break-all; overflow: hidden;}
+	.surveyCommentList li .photo {position: absolute;}
+	.surveyCommentList .photo img {width: 40px; height: 35px; border-radius: 50%;}
+	.surveyCommentList li .comments {margin-left: 45px;}
+	.surveyCommentList li .comments p {margin: 0px 0px 0px 5px; padding-top: 5px; font-size: 0.9rem; min-height: 25px;}
+	.surveyCommentList li .comments span{font-size: 0.8rem; color: #888; margin-left: 5px;}
+	.surveyCommentList li .btnCommentUD {float: right;}
+	.surveyCommentList li .btnCommentUD a {color: #888;}
+	.surveyCommentList li .btnCommentUD a:hover {color: black;}
+	
+</style>
+<script type="text/javascript">
+	$(function(){
+		// '댓글' 등록 시, 댓글 내용 보이기 
+		$("#btnSurveyCommentAdd").on("click", function(){
+			var commentInput = $("input[name='surveyComment']");
+			var comment = commentInput.val();
+			
+			var now = new Date();
+			var year = now.getFullYear();	// 연
+			var month = now.getMonth() + 1;	// 월 
+			var date = now.getDate();		// 일
+			var hour = now.getHours();		// 시
+			var min = now.getMinutes();		// 분
+			
+			// 1~9월, 1~9일, 0~9시 앞에 0 붙여주기
+			if(month < 10){
+				month = "0" + month;
+			}
+			if(date < 10){
+				date = "0" + date;
+			}
+			if(hour < 10){
+				hour = "0" + hour;
+			}
+			if(min < 10){
+				min = "0" + min;
+			}
+			if(fn_isEmpty(comment)){
+				alert("댓글을 입력하세요.");
+				return false;
+			}
+			
+			var commentTime = year + "-" + month + "-" + date + " " + hour + ":" + min;
+			
+			var str = '<li>'
+					+ '<span class="photo"><img src="/resources/img/profile.png"></span>'
+					+ '<div class="comments">'
+					+ '<p>'+ comment +'</p>'
+					+ '<span>'+ commentTime +'</span>'
+					+ '</div>'
+					+ '<div class="btnCommentUD">'
+					+	'<a href="#"><span><i class="far fa-edit mr-2"></i></span></a>'
+					+	'<a href="#"><span><i class="far fa-trash-alt mr-2"></i></span></a>'
+					+ '</div>'
+					+ '</li>';
+					
+			$(".ulComment").append(str);
+			commentInput.val(null);
+			commentInput.focus();
+		});
+		
+		 var ctx = document.getElementById("myChart");
+		  var myPieChart = new Chart(ctx, {
+		    type: 'doughnut',
+		    data: {
+		      labels: ["Direct", "Referral", "Social", "예시1", "예시2", "Direct", "Referral", "Social", "예시1", "예시2"],
+		      datasets: [{
+		        data: [30, 50, 20, 10, 10, 30, 50, 20, 10, 10],
+		        backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc'],
+		        hoverBackgroundColor: ['#2e59d9', '#17a673', '#2c9faf'],
+		        hoverBorderColor: "rgba(234, 236, 244, 1)",
+		      }],
+		    },
+		    options: {
+		      maintainAspectRatio: false,
+		      responsive: false,
+		      tooltips: {
+		        backgroundColor: "rgb(255,255,255)",
+		        bodyFontColor: "#858796",
+		        borderColor: '#dddfeb',
+		        borderWidth: 1,
+		        xPadding: 15,
+		        yPadding: 15,
+		        displayColors: false,
+		        caretPadding: 10,
+		      },
+		      legend: {
+		        display: true,
+		        position: 'right'
+		      },
+		      cutoutPercentage: 50,
+		    },
+		  });
+	});
+	
+	 
+
+	
+</script>
+<div id="body">
+	<div class="left-menu">
+		<div class="left-menu-list">
+			<div class="menu-name"><h3><a href="/survey/home">설문</a></h3></div>
+			<div class="menu-create">
+				<button id="btnCreate" type="button" class="btn btn-default" onclick="javascript:location.href='/survey/create'"><span>설문 작성</span></button>
+			</div>
+			<div class="menu-list">
+				<a href="#" class="toggle-menu-list"><i class="fas fa-angle-down mr-2"></i><strong>설문</strong></a>
+				<ul class="menu-list-ul">
+					<li>
+						<a href="/survey/run"><span>진행중인 설문</span></a>
+					</li>
+					<li>
+						<a href="/survey/done"><span>마감된 설문</span></a>
+					</li>
+					<li>
+						<a href="/survey/save"><span>내가 만든 설문</span></a>
+					</li>
+				</ul>
+			</div>
+		</div>
+	</div>
+	<div class="lefr-menu-list-content">
+		<div class="surveyDetailTitle">
+			<h3>설문 상세</h3>
+		</div>
+		<!-- 권한에 따른 설정 -->
+		<div class="surveyDetailRUD">
+			<a href="#"><span><i class="far fa-edit mr-2"></i></span><span>수정</span></a>
+			<a href="#"><span><i class="fas fa-ban mr-2"></i></span><span>중지</span></a>
+			<a href="#"><span><i class="far fa-clock mr-2"></i></span><span>마감</span></a>
+			<a href="#"><span><i class="far fa-trash-alt mr-2"></i></span><span>삭제</span></a>
+			<a href="#" class="surveyList"><span><i class="fas fa-bars mr-2"></i></span><span>목록</span></a>
+		</div>
+<!-- 		<div class="sueveyDetailRUD"> -->
+<!-- 			<a href="#"  class="surveyList"><span><i class="fas fa-bars mr-2"></i></span><span>목록</span></a> -->
+<!-- 		</div> -->
+		<div class="surveyDetailContent">
+			<div class="surveyInfo">
+				<h3>설문 제목</h3>
+				<table class="table">
+					<colgroup>
+						<col width="120px">
+						<col width="auto">
+					</colgroup>
+					<tbody>
+						<tr class="trSurveyWriter">
+							<td>작성자</td>
+							<td>
+								<span><img src="/resources/img/profile.png"></span>
+								<span>이영우 대표이사</span>
+							</td>
+						</tr>
+						<tr class="trSurveyWriteDate">
+							<td>작성일</td>
+							<td><span>2021-09-08(수) 19:35</span></td>
+						</tr>
+						<tr class="trSurveyDate">
+							<td>설문 기간</td>
+							<td><span>2021-09-08 ~ 2021-09-09</span></td>
+						</tr>
+						<tr class="trSurveyEditOption">
+							<td>참여 후 수정</td>
+							<td><span>허용</span></td>
+						</tr>
+						<tr class="trSurveyResultOption">
+							<td>설문 결과</td>
+							<td><span>공개</span></td>
+						</tr>
+					</tbody>
+				</table>
+				<div class="divSurveyDesc">
+					<p>설문 안내 문구</p>
+				</div>
+				<!-- 설문  시작 -->
+				<div class="divAddQuestionResultList">
+					<div class="divAddQuestionResultTitle">
+						<span>1.</span>
+						<span> 에이젝스로 넘어온 질문 제목 단일</span>
+					</div>
+					<div class="divAddQuestionResult">
+						<ul>
+							<li>
+								<input type="radio" class="question-radio" id="radio1" name="question">
+								<label for="radio1">보기내용 li부분 for문으로 돌리기</label>
+							</li>
+							<li>
+								<input type="radio" class="question-radio" id="radio1" name="question">
+								<label for="radio1">보기내용 li부분 for문으로 돌리기</label>
+							</li>
+							<li>
+								<input type="radio" class="question-radio" id="radio1" name="question">
+								<label for="radio1">보기내용 li부분 for문으로 돌리기</label>
+							</li>
+						</ul>
+					</div>
+				</div>
+				<!-- 설문  끝 -->
+				
+				<!-- 설문 결과(점수형) 시작 -->
+				<div class="surveyPointTypeResult">
+					<p>1. <span>질문 제목</span></p>
+					<div class="surveyResult">
+						<span>전체 참여자<strong>3</strong></span>
+						<span>참여자<strong>2</strong></span>
+						<span>참여율<strong class="resultPercent">66%</strong></span>
+						<span>평균점수<strong class="resultPoint">10.00</strong></span>
+					</div>
+				</div>
+				<!-- 설문 결과(점수형) 끝 -->
+				
+				<!-- 설문 결과(선택형) 시작 -->
+				<div class="surveySelectTypeResult">
+					<p>2. <span>질문 제목</span></p>
+					<div class="surveyResult">
+						<span>전체 참여자<strong>3</strong></span>
+						<span>참여자<strong>2</strong></span>
+						<span>참여율<strong class="resultPercent">66%</strong></span>
+					</div>
+					<div class="resulrChart">
+						<canvas id="myChart" width="350" height="300"></canvas>
+					</div>
+				</div>
+				<!-- 설문 결과(선택형) 끝 -->
+			</div>
+			<div class="btnSurveySubmit">
+				<button type="button" class="btn">설문 제출</button>
+			</div>
+		</div>
+		<div class="surveyComment">
+			<div class="surveyCommentTitle">
+				<span><i class="far fa-comment mr-2"></i></span><span>댓글(댓글 수)</span>
+			</div>
+			<form>
+				<div class="surveyMyComment">
+					<img src="/resources/img/profile.png">
+					<input type="text" class="form-control" name="surveyComment">
+					<button type="button" class="btn" id="btnSurveyCommentAdd">등록</button>
+				</div>
+			</form>
+			<div class="surveyCommentList">
+				<ul class="ulComment">
+				</ul>
+			</div>
+		</div>
+	</div>
+</div>

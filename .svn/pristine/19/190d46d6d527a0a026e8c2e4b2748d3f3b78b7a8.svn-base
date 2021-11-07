@@ -1,0 +1,40 @@
+package kr.or.ddit.todo.service;
+
+import java.util.List;
+import java.util.Map;
+
+import kr.or.ddit.todo.vo.TodoVO;
+
+public interface TodoService {
+	// 보드 조회
+	public List<TodoVO> boardAllList();
+	// 보드 공유자 조회
+	public List<TodoVO> boardCocnrAllList();
+	// 보드 생성
+	public int createBoard(TodoVO todoVO);
+	// 보드 공유자 추가
+	public int addBoardCocnr(TodoVO todoVO);
+	// 보드 즐겨찾기 여부 바꾸기
+	public int updateBkmk(Map<String, Object> map);
+	// 보드 상세 조회(보드 정보)
+	public TodoVO detailBoard(int boardNo);
+	// 보드 상세 조회(보드 공유자 정보)
+	public List<TodoVO> detailBoardCocnr(int boardNo);
+	// 카드 메뉴 생성
+	public int createCardMenu(TodoVO todoVO);
+	// 생성된 카드 메뉴 조회
+	public TodoVO createdCardMenuInfo(int cardMenuNo);
+	// 카드 메뉴 조회
+	public List<TodoVO> cardMenuList();
+	// 전체 카드 조회
+	public List<TodoVO> cardList();
+	// 카드 생성
+	public int createCard(TodoVO todoVO);
+	// 생성된 카드 조회
+	public TodoVO createdCardInfo(int cardNo);
+	// 카드 설명 생성/수정/삭제
+	public int editCardDesc(TodoVO todoVO);
+	// 카드 기한일 생성/수정
+	public int editCardEndDate(TodoVO todoVO);
+	
+}

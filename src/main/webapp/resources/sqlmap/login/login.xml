@@ -1,0 +1,44 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.login.mapper.LoginMapper">
+
+<select id="login" parameterType="empVo" resultType="empVo">
+	SELECT
+		A.empno,
+		A.dept_code,
+        C.NM deptNm,
+		A.rspofc_code,
+        D.nm rspofcNm,
+		A.ofcps_code,
+        E.nm ofcpsNm,
+		A.suprr_empno,
+		A.password,
+		A.nm,
+		A.email,
+		A.telno,
+		A.zip,
+		A.adres,
+		A.adres_detail,
+		A.ecny_de,
+		A.retire_de,
+		A.resve_confm_author,
+		B.file_nm,
+		B.file_cours,
+		B.file_orginl_nm,
+		B.file_no
+	FROM
+		TB_EMPL A, TB_FILE B, Tb_Unity_Code C, Tb_Unity_Code D, Tb_Unity_Code E
+	WHERE
+		A.EMPNO = #{empno}
+	AND 
+		A.file_no = B.file_no(+)
+	AND 
+		PASSWORD = #{password}
+	AND
+        A.dept_code = C.Code(+)
+    AND
+        A.rspofc_code = D.CODE(+)
+    AND
+        A.ofcps_code = E.CODE(+)
+</select>
+
+</mapper>

@@ -1,0 +1,39 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.file.mapper.FileMapper">
+	<!-- 첨부파일 등록 -->
+	<insert id="fileInsert" parameterType="kr.or.ddit.file.vo.FileVO">
+		INSERT INTO TB_FILE (FILE_NO, FILE_ORDR, FILE_NM, EXTSN, FILE_COURS, FILE_ORGINL_NM, STRE_TM)
+		VALUES
+		(
+		    #{fileNo}
+		    ,#{fileOrdr}
+		    ,#{fileNm}
+		    ,#{extsn}
+		    ,#{fileCours}
+		    ,#{fileOrginlNm}
+		    ,sysdate
+		)
+	</insert>
+	<!-- 첨부파일 번호 -->
+	<select id="fileNo" resultType="int">
+		SELECT
+	    	nvl(max(file_no), 0) + 1 file_no
+		FROM
+	    	TB_FILE
+	</select>
+	
+	<!-- 첨부파일 조회 -->
+	<select id="fileSelect" resultType="kr.or.ddit.file.vo.FileVO" parameterType="int">
+		SELECT * FROM TB_FILE WHERE FILE_NO = #{fileNo}
+	</select>
+	
+	<!-- 첨부파일 삭제 -->
+	<delete id="fileDelete" parameterType="String">
+		DELETE FROM TB_FILE WHERE FILE_NM = #{fileNm}
+	</delete>
+	
+	<!-- 게시물 삭제 -->
+	<delete id="fileAllDelete" parameterType="int">
+		DELETE FROM TB_FILE WHERE FILE_NO = #{fileNo}
+	</delete>
+</mapper>

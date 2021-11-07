@@ -1,0 +1,36 @@
+package kr.or.ddit.bogo.mapper;
+
+import java.util.List;
+import java.util.Map;
+
+import kr.or.ddit.bogo.vo.BogoVo;
+
+public interface BogoMapper {
+
+	 List<BogoVo> bogoList(Map<String, Object> map);
+
+		int bogoInsert(BogoVo bogoVo);
+
+		BogoVo bogoDetail(String reprtNo);
+
+		int selectCount();
+
+		int bogoDelete(String reprtNo);
+
+		int bogoAdd(BogoVo bogoVo);
+
+		int bogoTotal(Map<String, Object> map);
+
+		int bogoUpdate(BogoVo bogoVo);
+
+		int updateWithImage(BogoVo bogoVo);
+
+		int selectCountBogo(String reprtNo);
+
+		int bogozaInsert(BogoVo bogoVo);
+
+		int masterInsert(BogoVo bogoVo);
+
+		List<BogoVo> bogoMenuList(Map<String, Object> map);
+
+}

@@ -1,0 +1,84 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.notice.mapper.NoticeMapper">
+	
+	<!-- 공지 목록 -->
+	<select id="noticeList" resultType="noticeVo">	
+		SELECT ROW_NUMBER() OVER(ORDER BY NOTICE_NO DESC) RNUM
+			, NOTICE_NO
+			, E.NM
+			, N.SJ
+			, N.IMPRTNC_AT
+			, N.WRITNG_TM
+		FROM TB_NOTICE_BBS N, TB_EMPL E
+		WHERE N.WRTER_EMPNO = E.EMPNO
+	</select>
+	
+	
+	<!-- 공지 작성 -->
+	<insert id="noticeInsert" parameterType="noticeVo">
+		<selectKey keyProperty="noticeNo" order="BEFORE" resultType="int" >
+			SELECT NVL(MAX(notice_no), 0) + 1 FROM tb_notice_bbs
+		</selectKey>
+		INSERT INTO tb_notice_bbs (notice_no, wrter_empno, sj, cn, imprtnc_at, file_no)
+		VALUES
+		(
+		    #{noticeNo}
+		    ,#{wrterEmpno}
+		    ,#{sj}
+		    ,#{cn}
+		    ,#{imprtncAt}
+		    ,#{fileNo}
+		)
+	</insert>
+	
+	<!-- 공지 상세 정보 -->
+	<select id="noticeDetail" parameterType="int" resultType="noticeVo">
+		SELECT NOTICE_NO 
+			, E.NM NM
+			, N.SJ
+			, N.IMPRTNC_AT
+			, N.CN
+			, N.WRITNG_TM
+			, E2.NM UPDT_NM
+			, UPDT_TM
+			, N.UPDT_EMPNO
+			, N.FILE_NO
+		FROM TB_NOTICE_BBS N, TB_EMPL E, TB_EMPL E2
+		WHERE N.WRTER_EMPNO = E.EMPNO
+		AND N.UPDT_EMPNO = E2.EMPNO(+)
+		AND NOTICE_NO = #{noticeNo}
+	</select>
+	
+	<!-- 공지 수정 -->
+	<update id="noticeUpdate" parameterType="noticeVo">
+		UPDATE
+			TB_NOTICE_BBS
+		SET
+			SJ = #{sj},
+			CN = #{cn},
+			IMPRTNC_AT = #{imprtncAt},
+			UPDT_EMPNO = #{updtEmpno},
+			FILE_NO = #{fileNo},
+			UPDT_TM = SYSDATE
+		WHERE
+			NOTICE_NO =#{noticeNo}
+	</update>
+	
+	<!-- 공지 삭제 -->
+	<delete id="noticeDelete" parameterType="int">
+		DELETE
+		FROM
+			TB_NOTICE_BBS
+		WHERE
+			NOTICE_NO = #{noticeNo}
+	</delete>
+	
+	<!-- 삭제할 번호  -->
+	<select id="delFileNo" parameterType="int"  resultType="int">
+		SELECT FILE_NO
+		FROM
+			TB_NOTICE_BBS
+		WHERE
+			NOTICE_NO = #{noticeNo}
+	</select>
+</mapper>

@@ -1,0 +1,25 @@
+package kr.or.ddit.login.vo;
+
+import java.util.List;
+
+public class EmpVOList {
+	private List<EmpVO> empVoList;
+	private String chttRoomNo;
+	public List<EmpVO> getEmpVoList() {
+		return empVoList;
+	}
+
+	public void setEmpVoList(List<EmpVO> empVoList) {
+		this.empVoList = empVoList;
+	}
+
+	public String getChttRoomNo() {
+		return chttRoomNo;
+	}
+
+	public void setChttRoomNo(String chttRoomNo) {
+		this.chttRoomNo = chttRoomNo;
+	}
+	
+	
+}

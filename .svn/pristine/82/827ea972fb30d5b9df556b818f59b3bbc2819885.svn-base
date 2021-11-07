@@ -1,0 +1,79 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.file.mapper.FileMapper">
+	<!-- 사원 번호를 가지고 파일을 가져오는 sql -->
+	<select id="fileSelectByEmpno" parameterType="String" resultType="kr.or.ddit.file.vo.FileVO">
+	SELECT
+	    a.file_no
+	   ,a.file_ordr
+	   ,a.file_nm
+	   ,a.extsn
+	   ,a.file_cours
+	   ,a.file_orginl_nm
+	   ,a.stre_tm
+	   ,a.file_size
+	FROM
+	    tb_file a, tb_empl b
+	    where b.empno = #{empno}
+	    and a.file_no = b.file_no
+	
+	</select>
+
+	<!-- 첨부파일 등록 -->
+	<insert id="fileInsert" parameterType="kr.or.ddit.file.vo.FileVO">
+		INSERT INTO TB_FILE (FILE_NO, FILE_ORDR, FILE_NM, EXTSN, FILE_COURS, FILE_ORGINL_NM, STRE_TM, FILE_SIZE)
+		VALUES
+		(
+		    #{fileNo}
+		    ,#{fileOrdr}
+		    ,#{fileNm}
+		    ,#{extsn}
+		    ,#{fileCours}
+		    ,#{fileOrginlNm}
+		    ,sysdate
+		    ,#{fileSize}
+		)
+	</insert>
+	<!-- 첨부파일 번호 -->
+	<select id="fileNo" resultType="int">
+		SELECT
+	    	nvl(max(file_no), 0) + 1 file_no
+		FROM
+	    	TB_FILE
+	</select>
+	
+	<!-- 첨부파일 조회 -->
+	<select id="fileSelect" resultType="kr.or.ddit.file.vo.FileVO" parameterType="int">
+		SELECT * FROM TB_FILE WHERE FILE_NO = #{fileNo}
+	</select>
+	
+	<!-- 파일 다운로드를 위한 파일 단건 조회 -->
+	<select id="fileSelectForDownload" parameterType="hashMap" resultType="kr.or.ddit.file.vo.FileVO">
+		SELECT * 
+		FROM TB_FILE 
+		WHERE FILE_NO = #{fileNo}
+		AND FILE_ORDR = #{fileOrdr}
+	</select>
+	
+	<!-- 첨부파일 삭제 -->
+	<delete id="fileDelete" parameterType="String">
+		DELETE FROM TB_FILE WHERE FILE_NM = #{fileNm}
+	</delete>
+	
+	<!-- 게시물 삭제 -->
+	<delete id="fileAllDelete" parameterType="int">
+		DELETE FROM TB_FILE WHERE FILE_NO = #{fileNo}
+	</delete>
+	
+	<!-- 최대 파일 순서 구하기 -->
+	<select id="getMaxFileOrdr" parameterType="int" resultType="int">
+		SELECT NVL(MAX(FILE_ORDR),0)+1 AS fileOrdr 
+		FROM TB_FILE
+		WHERE FILE_NO = #{fileNo}
+	</select>
+	
+	<!-- 파일 번호, 파일 순서를 파라미터로 받아 각각의 파일 삭제 -->
+	<delete id="deleteFileOne" parameterType="hashMap">
+		DELETE FROM TB_FILE WHERE FILE_NO = #{fileNo} AND FILE_ORDR = #{fileOrdr}
+	</delete>
+	
+</mapper>

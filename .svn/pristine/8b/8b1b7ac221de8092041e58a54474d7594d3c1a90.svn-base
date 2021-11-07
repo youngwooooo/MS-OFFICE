@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.mail.mapper.MailMapper">
+<!-- SELECT NVL(MAX(CMMNTY_NO), 0) + 1 FROM TB_CMMNTY -->
+
+<insert id="emailinsert" parameterType="kr.or.ddit.mail.vo.MailVo">
+	<!-- 보내는 메일 insert -->
+		INSERT INTO tb_email (
+		    email_no,
+		    dsptch_empno,
+		    sj,
+		    cn,
+		    dsptch_tm,
+		    recptn_tm,
+		    file_no
+		) VALUES (
+		    (SELECT NVL(max(TO_NUMBER(email_no)) , 0 ) + 1
+			   FROM TB_email),
+		    #{dsptchEmpno},
+		    #{sj},
+		    #{cn},
+		    sysdate,
+		    sysdate,
+		    #{fileNo}
+		)
+	</insert>
+	
+	<!-- 받은메일함 insert -->
+	<insert id="receiveMail" parameterType="kr.or.ddit.mail.vo.MailVo">
+		INSERT INTO tb_recptn_email (
+		    recptn_empno
+		    ,email_no
+		    ,cnfirm_at
+		) VALUES (
+		    #{recptnEmpno}
+		    ,#{emailNo}
+		    ,'N'
+		)
+	</insert>
+	
+	<!-- 마지막메일 조회 -->
+	<select id="lastAddMailList" resultType="kr.or.ddit.mail.vo.MailVo">
+		  SELECT *
+		from
+		(select
+		    email_no,
+		    dsptch_empno,
+		    sj,
+		    cn,
+		    dsptch_tm,
+		    recptn_tm,
+		    file_no
+		FROM
+		    tb_email
+		    order by dsptch_tm desc)
+		    where rownum=1
+	</select>
+	
+	<!-- 받은메일함 -->
+	<select id="receiveMaillist" parameterType="hashMap" resultType="kr.or.ddit.mail.vo.MailVo">
+	SELECT T.* 
+		FROM ( 
+		SELECT ROW_NUMBER() OVER(ORDER BY tre.EMAIL_NO DESC) rnum,
+		    tre.RECPTN_EMPNO
+		    , tre.EMAIL_NO
+		    , tre.TAG
+		    , tre.CNFIRM_AT          
+		    , te.DSPTCH_EMPNO
+		    , te.SJ
+		    , te.CN
+		    , te.DSPTCH_TM
+		    , te.RECPTN_TM
+		    , te.FILE_NO
+		    , tep.nm as receiverNm
+		FROM
+		    tb_recptn_email tre, TB_EMAIL te , TB_EMPL tep 
+		WHERE 1=1
+		    AND tre.EMAIL_NO = te.EMAIL_NO(+) 
+		    AND te.DSPTCH_EMPNO = tep.EMPNO(+)
+		    AND tre.recptn_empno = #{empno}
+		    <choose>
+			<when test="selSearch=='' and selSearch.equals('')">
+			AND	te.SJ || te.CN LIKE '%' || #{keyword} || '%'
+			</when>
+			<otherwise>
+				<if test="selSearch!='' and selSearch.equals('sj')">
+				AND te.SJ LIKE '%' || #{keyword} || '%'
+				</if>
+				<if test="selSearch!='' and selSearch.equals('cn')">
+				AND te.CN LIKE '%' || #{keyword} || '%'
+				</if>
+			</otherwise>
+		</choose>
+)T
+WHERE T.RNUM BETWEEN #{currentPage} * 10 - 9 AND #{currentPage} * 10
+	</select>
+	<select id="mailTotal" parameterType="hashMap" resultType="int">
+		SELECT COUNT(*)
+		FROM TB_EMAIL A, TB_RECPTN_EMAIL B
+		WHERE A.EMAIL_NO = B.EMAIL_NO
+			<choose>
+			<when test="selSearch=='' and selSearch.equals('')">
+				AND SJ || CN LIKE '%' || #{keyword} || '%'
+			</when>
+			<otherwise>
+				<if test="selSearch!='' and selSearch.equals('sj')">
+				AND SJ LIKE '%' || #{keyword} || '%'
+				</if>
+				<if test="selSearch!='' and selSearch.equals('cn')">
+				AND CN LIKE '%' || #{keyword} || '%'
+				</if>
+			</otherwise>
+		</choose>
+	</select>
+	<!-- 보낸메일함 조회 -->
+	<select id="decpthMailList" parameterType="hashMap" resultType="kr.or.ddit.mail.vo.MailVo">
+SELECT T.* 
+		FROM (  
+		SELECT ROW_NUMBER() OVER(ORDER BY te.EMAIL_NO DESC) rnum, 
+	    tre.RECPTN_EMPNO
+	    , tre.EMAIL_NO
+	    , tre.TAG
+	    , tre.CNFIRM_AT          
+	    , te.DSPTCH_EMPNO
+	    , te.SJ
+	    , te.CN
+	    , te.DSPTCH_TM
+	    , te.RECPTN_TM
+	    , te.FILE_NO
+	    , tep.nm as receiverNm
+	FROM
+	    tb_recptn_email tre, TB_EMAIL te , TB_EMPL tep 
+	WHERE 1=1
+	    AND tre.EMAIL_NO = te.EMAIL_NO(+) 
+	    AND tre.RECPTN_EMPNO = tep.EMPNO(+)
+	    AND te.DSPTCH_EMPNO = #{empno}
+	    <choose>
+			<when test="selSearch=='' and selSearch.equals('')">
+			AND	te.SJ || te.CN LIKE '%' || #{keyword} || '%'
+			</when>
+			<otherwise>
+				<if test="selSearch!='' and selSearch.equals('sj')">
+				AND te.SJ LIKE '%' || #{keyword} || '%'
+				</if>
+				<if test="selSearch!='' and selSearch.equals('cn')">
+				AND te.CN LIKE '%' || #{keyword} || '%'
+				</if>
+			</otherwise>
+		</choose>
+)T
+WHERE T.RNUM BETWEEN #{currentPage} * 10 - 9 AND #{currentPage} * 10
+	</select>
+
+	<!-- 삭제 -->
+	<delete id="emaildelete" parameterType="kr.or.ddit.mail.vo.MailVo">
+		DELETE TB_RECPTN_EMAIL
+		WHERE
+		EMAIL_NO = #{emailNo}
+	</delete>
+	
+	<delete id="sendemaildelete" parameterType="kr.or.ddit.mail.vo.MailVo">
+		DELETE TB_EMAIL
+		WHERE
+		EMAIL_NO = #{emailNo}
+	</delete>
+	
+	<!-- 상세조회 화면 -->
+	<select id="detail" parameterType="kr.or.ddit.mail.vo.MailVo" resultType="kr.or.ddit.mail.vo.MailVo">		
+		SELECT
+		    a.email_no
+		    ,b.cn
+		    ,b.sj
+		    ,b.file_no
+		    ,c.nm as dsptchNm    
+		    ,b.recptn_tm
+		FROM
+		    tb_recptn_email a , tb_email b, tb_empl c
+		where a.email_no=b.email_no
+		    and c.empno = b.dsptch_empno
+		    and a.email_no = #{emailNo}
+    </select>
+    
+    <!-- 읽음 여부 처리를 위한 TB_RECPTN_EMAIL.CNFIRM_AT 컬럼 update -->
+    <update id="updateForReadProcessing" parameterType="kr.or.ddit.mail.vo.MailVo">
+    	 <![CDATA[
+    	 update TB_RECPTN_EMAIL
+		 	set CNFIRM_AT = 'Y'
+		 where EMAIL_NO = #{emailNo}
+    	 ]]>    	 
+    </update>
+    
+    <!-- 확인하지 않은 메일 개수 조회 -->
+    <select id="getCnfirmAtIsNCount" parameterType="String" resultType="int">
+    	SELECT NVL(SUM(COUNT(T.EMAIL_NO)), 0) AS count 		    
+		FROM
+		(SELECT
+			RECPTN_EMPNO
+			, EMAIL_NO
+			, TAG
+			, CNFIRM_AT
+		FROM
+			TB_RECPTN_EMAIL
+		WHERE RECPTN_EMPNO = #{empno}
+		AND CNFIRM_AT = 'N') T
+		GROUP BY T.EMAIL_NO
+    </select>
+</mapper>

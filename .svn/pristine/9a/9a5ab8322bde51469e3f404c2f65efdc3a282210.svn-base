@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE tiles-definitions PUBLIC "-//Apache Software Foundation//DTD Tiles Configuration 3.0//EN" "http://tiles.apache.org/dtds/tiles-config_3_0.dtd">
+
+<!-- tiles 설정 -->
+<tiles-definitions>
+	<!-- main layout 설정 -->
+	<definition name="tiles-layout" template="/WEB-INF/views/tiles/index.jsp">
+		<put-attribute name="header" value="/WEB-INF/views/tiles/header.jsp" />
+		<put-attribute name="aside" value="/WEB-INF/views/tiles/aside.jsp" />
+		<put-attribute name="body" value="" />	<!-- 내용 부분. 동적으로 value 설정 -->
+	</definition>
+	
+	<!-- body 설정 -->
+	<!-- {1} : 폴더 , {2} : jsp 파일 -->
+	<!-- 
+		*/* : controller에서 요청되는 URI. (ex : /wk/insert)
+		=> * : {1} / * : {2}  
+	-->
+	
+	<!-- no tiles -->
+	<definition name="empty" template="/WEB-INF/tiles/template/empty.jsp">
+          <put-attribute name="content" value=""/>
+    </definition>
+    
+	<definition name="exception/*" extends="empty">
+          <put-attribute name="content" value="/WEB-INF/views/exception/{1}.jsp" />
+          <put-attribute name="title" value="{1}"></put-attribute>
+    </definition>
+	
+	<definition name="*/*" extends="tiles-layout">
+		<put-attribute name="body" value="/WEB-INF/views/{1}/{2}.jsp"></put-attribute>
+		<put-attribute name="title" value="MS Office"></put-attribute>
+	</definition>
+	
+	
+	
+</tiles-definitions>

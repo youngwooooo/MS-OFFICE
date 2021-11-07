@@ -1,0 +1,128 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.messenger.mapper.ChatMapper">
+
+<!-- 각 채팅방에서 읽지 않은 메세지 개수 -->
+<select id="noReadChatCount" parameterType="chatVo" resultType="chatVo">
+<![CDATA[
+select B.Chtt_Room_No, count(B.Chtt_No) chtt_no
+from
+    (select chtt_room_no, last_tm, entnc_tm
+    from Tb_Chtt_Prtcpnt
+    where Prtcpnt_Empno = #{prtcpntEmpno}) A, tb_chtt B
+where B.Chtt_Room_No in A.Chtt_Room_No
+and NVL(A.Last_Tm, A.Entnc_Tm) < B.Writng_Tm
+group by B.Chtt_Room_No
+]]>
+</select>
+
+<!-- 채팅방에 들어왔을때 마지막 시각 업데이트 -->
+<update id="lastTm" parameterType="chatVo">
+update 
+	tb_chtt_prtcpnt 
+set 
+	LAST_TM = sysdate
+where 
+	prtcpnt_empno = #{prtcpntEmpno}
+and
+	chtt_room_no = #{chttRoomNo}
+</update>
+
+<!-- 채팅 입력 -->
+<insert id="chatInsert" parameterType="chatVo">
+	INSERT INTO tb_chtt (
+    chtt_no
+   ,chtt_room_no
+   ,prtcpnt_empno
+   ,emtcn_no
+   ,cn
+   ,writng_tm
+   ,file_no
+   ,updt_empno
+   ,updt_tm
+) VALUES (
+    (SELECT NVL(MAX(chtt_no), 0) + 1 chtt_no
+	   FROM TB_CHTT)
+   ,#{chttRoomNo}
+   ,#{prtcpntEmpno}
+   ,null
+   ,#{cn}
+   ,sysdate
+   ,null
+   ,null
+   ,null
+)
+</insert>
+
+<!-- 참가자가 속한 채팅방과 그 채팅방에 속한 사람들 조회 -->
+<select id="chatRoomNoAndPrtcpnt" parameterType="chatVo" resultType="chatVo">
+	select *
+	from tb_chtt_prtcpnt, tb_empl
+	where exit_tm is null
+	and tb_empl.empno = Tb_Chtt_Prtcpnt.Prtcpnt_Empno
+	and chtt_room_no in (SELECT
+							chtt_room_no
+						FROM
+							tb_chtt_prtcpnt
+						WHERE Prtcpnt_Empno = #{prtcpntEmpno}
+						AND exit_tm is null)
+</select>
+
+<!-- 참가자가 속한 채팅방 번호 조회 -->
+<select id="chatRoomList" parameterType="chatVo" resultType="String">
+	SELECT
+	    chtt_room_no
+	FROM
+	    tb_chtt_prtcpnt
+	WHERE Prtcpnt_Empno = #{prtcpntEmpno}
+	AND exit_tm is null
+</select>
+
+<!-- 참가자가 속한 채팅방의 채팅 내역 -->
+<select id="chatListByEmpno" parameterType="chatVo" resultType="chatVo">
+SELECT 
+    chtt_no
+   ,tb_chtt.chtt_room_no
+   ,prtcpnt_empno
+   ,nm
+   ,emtcn_no
+   ,cn
+   ,writng_tm
+   ,tb_empl.file_no
+   ,updt_empno
+   ,updt_tm
+FROM
+    (SELECT
+        chtt_room_no, ENTNC_TM
+    FROM
+        tb_chtt_prtcpnt
+    WHERE Prtcpnt_Empno = #{prtcpntEmpno} AND EXIT_TM IS NULL) VIEW_ROOM, tb_chtt, tb_empl
+WHERE tb_chtt.chtt_Room_No = View_Room.Chtt_Room_No 
+AND prtcpnt_empno = empno
+AND tb_chtt.chtt_room_no = #{chttRoomNo}
+AND Tb_Chtt.Writng_Tm >= View_Room.Entnc_Tm
+ORDER BY chtt_no asc
+</select>
+
+<!-- 참가자의 마지막 채팅 -->
+<select id="chatLastByEmpno" parameterType="chatVo" resultType="chatVo">
+Select *
+FROM
+    (SELECT
+        chtt_no
+       ,chtt_room_no
+       ,prtcpnt_empno
+       ,nm
+       ,emtcn_no
+       ,cn
+       ,writng_tm
+       ,tb_empl.file_no
+       ,updt_empno
+       ,updt_tm
+    FROM
+        tb_chtt, tb_empl
+    WHERE prtcpnt_empno = empno
+    AND empno = #{prtcpntEmpno}
+    ORDER BY CHTT_NO DESC)
+WHERE ROWNUM = 1
+</select>
+</mapper>

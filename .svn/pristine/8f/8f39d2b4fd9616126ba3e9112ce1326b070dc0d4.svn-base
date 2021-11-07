@@ -1,0 +1,176 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@ taglib prefix="form" uri="http://www.springframework.org/tags/form"%>
+<%@ taglib prefix="spring" uri="http://www.springframework.org/tags"%>
+<script src="\resources\js\jquery.min.js"></script>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  
+  <!-- 서머노트를 위해 추가해야할 부분 -->
+  <script src="${pageContext.request.contextPath}/resources/summernote/summernote-lite.js"></script>
+  <script src="${pageContext.request.contextPath}/resources/summernote/lang/summernote-ko-KR.js"></script>
+  <link rel="stylesheet" href="${pageContext.request.contextPath}/resources/summernote/summernote-lite.css">
+  <!--  -->
+	<div class="card shadow mb-4">
+		<div class="card-header py-3">
+			<h6 class="m-0 font-weight-bold text-primary">보고하기</h6>
+		</div>
+		<div class="card-body">
+			<div id="dataTable_wrapper" class="dataTables_wrapper dt-bootstrap4">
+				
+				<form action="/bogo/insert" method="post">
+					<!-- form start -->
+				
+					<input type="text" class="form-control" name=empno id="empno" value="${empVo.empno}">
+					<input type="text" class="form-control" name="reprtListNo" id="reprtListNo" value="${param.reprtListNo}">
+					<div class="row">
+						<div class="col-sm-6">
+							<div class="form-group">
+								<label for="reportr">보고자</label> <input type="text"
+									class="form-control" name="reportr" id="reportr" disabled="disabled" value="${empVo.nm}">
+							</div>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-sm-6">
+							<div class="form-group">
+								<label for="title">제목</label> <input type="text"
+									class="form-control" name="sj" id="sj" value="${param.sj}">
+							</div>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-sm-6">
+							<div class="form-group">
+								<label for="cn">내용</label>
+								<div class="cn">
+									<textarea class="summernote" name="cn" id="summernote"></textarea>
+								</div>
+
+
+							</div>
+						</div>
+					</div>
+					
+						<div>
+						<div>
+							 <span style=  "color: red; font-size:1.5em;" >*</span>첨부파일
+							<br><input type="file">
+						</div>
+					</div>
+					
+					
+					<hr>
+					
+					<div class="row">
+						<div class="col-sm-12 text-right">
+							<button type="submit" class="btn btn-primary" id="btnSubmit">등록</button>
+							<button type="reset" class="btn btn-light">취소</button>
+							<button type="button" class="btn btn-danger"
+								onclick="javascript:history.go(-1)">뒤로가기</button>
+						</div>
+					</div>
+
+				</form>
+				<!-- // form end -->
+			</div>
+		</div>
+	</div>
+	<script>
+		$('.summernote').summernote(
+				{
+					// 에디터 높이
+					height : 400,
+					width : 1400,
+					// 에디터 한글 설정
+					lang : "ko-KR",
+					// 에디터에 커서 이동 (input창의 autofocus라고 생각하시면 됩니다.)
+					focus : true,
+					toolbar : [
+							// 글꼴 설정
+							[ 'fontname', [ 'fontname' ] ],
+							// 글자 크기 설정
+							[ 'fontsize', [ 'fontsize' ] ],
+							// 굵기, 기울임꼴, 밑줄,취소 선, 서식지우기
+							[
+									'style',
+									[ 'bold', 'italic', 'underline',
+											'strikethrough', 'clear' ] ],
+							// 글자색
+							[ 'color', [ 'forecolor', 'color' ] ],
+							// 표만들기
+							[ 'table', [ 'table' ] ],
+							// 글머리 기호, 번호매기기, 문단정렬
+							[ 'para', [ 'ul', 'ol', 'paragraph' ] ],
+							// 줄간격
+							[ 'height', [ 'height' ] ],
+							// 그림첨부, 링크만들기, 동영상첨부
+							[ 'insert', [ 'picture', 'link', 'video' ] ],
+							// 코드보기, 확대해서보기, 도움말
+							[ 'view', [ 'codeview', 'fullscreen', 'help' ] ] ],
+					// 추가한 글꼴
+					fontNames : [ 'Arial', 'Arial Black', 'Comic Sans MS',
+							'Courier New', '맑은 고딕', '궁서', '굴림체', '굴림', '돋음체',
+							'바탕체' ],
+					// 추가한 폰트사이즈
+					fontSizes : [ '8', '9', '10', '11', '12', '14', '16', '18',
+							'20', '22', '24', '28', '30', '36', '50', '72' ]
+
+				});
+	</script>
+
+	<script>
+		$(document)
+				.ready(
+						function() {
+
+							var toolbar = [
+									// 글꼴 설정
+									[ 'fontname', [ 'fontname' ] ],
+									// 글자 크기 설정
+									[ 'fontsize', [ 'fontsize' ] ],
+									// 굵기, 기울임꼴, 밑줄,취소 선, 서식지우기
+									[
+											'style',
+											[ 'bold', 'italic', 'underline',
+													'strikethrough', 'clear' ] ],
+									// 글자색
+									[ 'color', [ 'forecolor', 'color' ] ],
+									// 표만들기
+									[ 'table', [ 'table' ] ],
+									// 글머리 기호, 번호매기기, 문단정렬
+									[ 'para', [ 'ul', 'ol', 'paragraph' ] ],
+									// 줄간격
+									[ 'height', [ 'height' ] ],
+									// 그림첨부, 링크만들기, 동영상첨부
+									[ 'insert', [ 'picture', 'link', 'video' ] ],
+									// 코드보기, 확대해서보기, 도움말
+									[
+											'view',
+											[ 'codeview', 'fullscreen', 'help' ] ] ];
+
+							var setting = {
+								height : 300,
+								minHeight : null,
+								maxHeight : null,
+								focus : true,
+								lang : 'ko-KR',
+								toolbar : toolbar,
+								callbacks : { //여기 부분이 이미지를 첨부하는 부분
+									onImageUpload : function(files, editor,
+											welEditable) {
+										for (var i = files.length - 1; i >= 0; i--) {
+											uploadSummernoteImageFile(files[i],
+													this);
+										}
+									}
+								}
+							};
+
+							$('#summernote').summernote(setting);
+						});
+	</script>
+	

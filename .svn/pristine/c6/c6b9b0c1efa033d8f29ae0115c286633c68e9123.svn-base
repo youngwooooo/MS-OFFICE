@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+	<!-- [마이바티스]스프링에서 "_"를 사용한 컬럼명 사용 시 mapUnderscoreToCamelCase를 사용하여
+	컬럼명에 "_"가 있을 경우 카멜케이스로 읽어줌.
+	컬럼명이 member_id인 경우 jsp화면단에서 이 값을 사용 시 memberId로 사용하면 됨
+	 -->
+	<settings>
+		<setting name="mapUnderscoreToCamelCase" value="true"/>
+	</settings>
+
+	<!-- 자주 사용하는 타입의 별칭 -->
+	<typeAliases>
+		<typeAlias type="kr.or.ddit.login.vo.EmpVO" alias="empVo" />
+		<typeAlias type="kr.or.ddit.messenger.vo.ChatVO" alias="chatVo" />
+		<typeAlias type="kr.or.ddit.notice.vo.NoticeVO" alias="noticeVo" />
+		<typeAlias type="kr.or.ddit.calendar.vo.CalendarVO" alias="calendarVO" />
+		<typeAlias type="kr.or.ddit.organization.vo.OrganizationVO" alias="ozVO" />
+		<typeAlias type="kr.or.ddit.ehr.vo.EhrVO" alias="ehrVo" />
+		<typeAlias type="kr.or.ddit.todo.vo.TodoVO" alias="todoVO"/>
+	</typeAliases>
+</configuration>
+
+
+
+
+
+
+

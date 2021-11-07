@@ -1,0 +1,17 @@
+package kr.or.ddit.mail.controller;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+
+import kr.or.ddit.common.controller.CommonController;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Controller
+public class MailController {
+
+	@GetMapping("/mail")
+	public String indexLTE() {
+		return "mail/receive";
+	}
+}

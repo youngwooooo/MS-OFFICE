@@ -1,0 +1,21 @@
+- jQery AJAX
+
+$.ajax({
+   url :
+   , type : 데이터를 전송하는 방법(get/post)
+   , data : 서버로 데이터를 전송할 때
+   , dataType : 서버 측에서 전송한 응답데이터를 어떤 형식의 데이터로 해석할 것인가
+   , success : function(data){ }
+    : 성공했을 때 호출할 콜백을 지정 
+   , error : function(xhr){ }
+    : 실패했을 때 호출할 콜백지정 
+    - 실제 시스템 상 에러 > if-else처럼 코드 쓰면 X
+})
+
+* jsp
+ jsp 파일 생성 직후 에러
+ : the superclass javax.servlet.http.httpservlet was not found on the java build path
+  > HttpServlet을 찾을 수 없기 때문에
+ - 해결방법 : 프로젝트 우클릭 > Propertise
+   > Java Build Path > Libraries > Add Library
+   > Sever Runtime > 아파치 톰캣 선택 적용

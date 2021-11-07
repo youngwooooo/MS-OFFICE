@@ -1,0 +1,40 @@
+package kr.or.ddit.calendar.service.impl;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import kr.or.ddit.calendar.mapper.CalendarMapper;
+import kr.or.ddit.calendar.service.CalendarService;
+import kr.or.ddit.calendar.vo.CalendarVO;
+
+@Service
+public class CalendarServiceImpl implements CalendarService{
+	
+	@Autowired
+	private CalendarMapper cm;
+	
+	// 모든 일정 목록 가져오기
+	@Override
+	public List<CalendarVO> selectScheduleList(){
+		return cm.selectScheduleList();
+	}
+	
+	// 일정 수정
+	@Override
+	public int editSchedule(CalendarVO calendarVO) {
+		return cm.editSchedule(calendarVO);
+	}
+
+	// 일정 삭제
+	@Override
+	public int deleteSchedule(int schdulNo) {
+		return cm.deleteSchedule(schdulNo);
+	}
+
+	@Override
+	public int createSchedule(CalendarVO calendarVO) {
+		return cm.createSchedule(calendarVO);
+	}
+}

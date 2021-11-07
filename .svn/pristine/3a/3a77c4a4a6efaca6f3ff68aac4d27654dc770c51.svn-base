@@ -1,0 +1,127 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.notice.mapper.NoticeMapper">
+	
+	<!-- 공지 목록 -->
+	<select id="noticeList" parameterType="hashMap" resultType="noticeVo">	
+		SELECT R.*
+		FROM (SELECT ROW_NUMBER() OVER(ORDER BY NOTICE_NO) RNUM
+				, ROW_NUMBER() OVER(ORDER BY NOTICE_NO DESC) DRNUM
+	            , E.NM
+	            , N.NOTICE_NO
+	            , N.WRTER_EMPNO
+				, N.SJ
+				, N.CN
+				, N.IMPRTNC_AT
+				, N.WRITNG_TM
+				, N.FILE_NO
+			FROM TB_NOTICE_BBS N,TB_EMPL E
+			WHERE WRTER_EMPNO = E.EMPNO
+			<choose>
+				<when test="selSearch=='' and selSearch.equals('')">
+					AND NM || SJ || CN LIKE '%' || #{keyword} || '%'
+				</when>
+				<otherwise>
+					<if test="selSearch!='' and selSearch.equals('nm')">
+					AND NM LIKE '%' || #{keyword} || '%'
+					</if>
+					<if test="selSearch!='' and selSearch.equals('sj')">
+					AND SJ LIKE '%' || #{keyword} || '%'
+					</if>
+					<if test="selSearch!='' and selSearch.equals('cn')">
+					AND CN LIKE '%' || #{keyword} || '%'
+					</if>
+				</otherwise>
+			</choose>
+			ORDER BY NOTICE_NO desc) R
+		WHERE DRNUM BETWEEN #{currentPage} * 12 - 11 AND #{currentPage} * 12
+	</select>
+	<!-- 공지 수 -->
+	<select id="noticeTotal" parameterType="hashMap" resultType="int">
+		SELECT COUNT(*)
+		FROM TB_NOTICE_BBS N,TB_EMPL E
+		WHERE WRTER_EMPNO = E.EMPNO
+		<choose>
+			<when test="selSearch=='' and selSearch.equals('')">
+				AND NM || SJ || CN LIKE '%' || #{keyword} || '%'
+			</when>
+			<otherwise>
+				<if test="selSearch!='' and selSearch.equals('nm')">
+				AND NM LIKE '%' || #{keyword} || '%'
+				</if>
+				<if test="selSearch!='' and selSearch.equals('sj')">
+				AND SJ LIKE '%' || #{keyword} || '%'
+				</if>
+				<if test="selSearch!='' and selSearch.equals('cn')">
+				AND CN LIKE '%' || #{keyword} || '%'
+				</if>
+			</otherwise>
+		</choose>
+	</select>
+	
+	<!-- 공지 작성 -->
+	<insert id="noticeInsert" parameterType="noticeVo">
+		<selectKey keyProperty="noticeNo" order="BEFORE" resultType="int" >
+			SELECT NVL(MAX(notice_no), 0) + 1 FROM tb_notice_bbs
+		</selectKey>
+		INSERT INTO tb_notice_bbs (notice_no, wrter_empno, sj, cn, file_no)
+		VALUES
+		(
+		    #{noticeNo}
+		    ,#{wrterEmpno}
+		    ,#{sj}
+		    ,#{cn}
+		    ,#{fileNo}
+		)
+	</insert>
+	
+	<!-- 공지 상세 정보 -->
+	<select id="noticeDetail" parameterType="int" resultType="noticeVo">
+		SELECT NOTICE_NO 
+			, N.WRTER_EMPNO
+			, E.NM NM
+			, N.SJ
+			, N.IMPRTNC_AT
+			, N.CN
+			, N.WRITNG_TM
+			, E2.NM UPDT_NM
+			, UPDT_TM
+			, N.UPDT_EMPNO
+			, N.FILE_NO
+		FROM TB_NOTICE_BBS N, TB_EMPL E, TB_EMPL E2
+		WHERE N.WRTER_EMPNO = E.EMPNO
+		AND N.UPDT_EMPNO = E2.EMPNO(+)
+		AND NOTICE_NO = #{noticeNo}
+	</select>
+	
+	<!-- 공지 수정 -->
+	<update id="noticeUpdate" parameterType="noticeVo">
+		UPDATE
+			TB_NOTICE_BBS
+		SET
+			SJ = #{sj},
+			CN = #{cn},
+			UPDT_EMPNO = #{updtEmpno},
+			FILE_NO = #{fileNo},
+			UPDT_TM = SYSDATE
+		WHERE
+			NOTICE_NO =#{noticeNo}
+	</update>
+	
+	<!-- 공지 삭제 -->
+	<delete id="noticeDelete" parameterType="int">
+		DELETE
+		FROM
+			TB_NOTICE_BBS
+		WHERE
+			NOTICE_NO = #{noticeNo}
+	</delete>
+	
+	<!-- 삭제할 번호  -->
+	<select id="delFileNo" parameterType="int"  resultType="int">
+		SELECT FILE_NO
+		FROM
+			TB_NOTICE_BBS
+		WHERE
+			NOTICE_NO = #{noticeNo}
+	</select>
+</mapper>

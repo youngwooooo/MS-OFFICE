@@ -1,0 +1,786 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<!-- 공통 js -->
+<script src="/resources/js/common/common.js"></script>
+<style>
+	/* todoDetail css */
+	h3 {font-size: 1.5rem;}
+	.lefr-menu-list-content {padding-left: 30px;}
+	
+	.boardTitle .bkmkYN {margin-left: 15px; padding-top: 2px;}
+	.row {padding-left: 10px;}
+	.row .cardMenuNo {display: none;}
+	
+	
+	#createCardMenu {border: 1px solid #ddd; min-height: 60px; height:100%; color: #888; background-color: #ddd; text-align: center; cursor: pointer; margin-right: 10px; margin-bottom: 10px;}
+	.createCardMenuList {padding: 10px; display: none;}
+	.createCardList {padding: 0px; display: none;}
+	#createCardMenu input, .cardMenu input {width: 100%; border: 1px solid #dddddd; height: 30px; font-size: 0.9rem; padding: 0px 10px 0px 10px;}
+	.btnCard, .btnCreateInfoContent {margin-top: 5px; overflow: hidden; margin-left: 2px;}
+	#createCardMenu button, .cardMenu button {float: left; margin-right: 5px; font-size: 0.8rem; padding: 3px 10px 3px 10px;}
+	#btnCreateCardMenu, #btnCreateCard {border: 1px solid #55beff; background-color: #55beff; color: white;}
+	#btnCancelCardMenu, #btnCancelCard {border: 1px solid white; background-color: white; color: black;}
+	
+	.cardMenu {border: 1px solid #ddd; min-height: 60px; height:100%; background-color: #ddd; margin-right: 10px; margin-bottom: 10px;}
+	
+	.createCard {border: 1px dashed #888; color: #888; text-align: center; padding-top: 5px; padding-bottom: 5px;}
+	.createCard:hover {background-color: #cac7c7; cursor: pointer;}
+	
+	.cardMenu {padding: 10px;}
+	.cardMenuTitle {overflow: hidden; margin-top: 10px; margin-bottom: 20px;}
+	.cardMenuTitle span:nth-of-type(1) {float: left; font-weight: bold;}
+	.cardMenuTitle span:nth-of-type(2) {color: #888; float: right; cursor: pointer;}
+	.cards {background-color: white; border: 1px solid white; padding: 5px; margin-bottom: 10px;}
+	.cards:hover {background-color: #cac7c7; border-color: #cac7c71; cursor: pointer;}
+	.cards .cardTitle span:nth-of-type(1) {font-size: 0.9rem;}
+	
+	/* 카드 상세 모달창 */
+	.detailCard {top: 10px; left: 0px;}
+	.modal-title, .cardFileTitle, .sharedMemberTitle, .cardDateTitle {font-weight: bold;}
+	.detailCard .cardInfo .InfoContent {margin-top: 10px; word-break:break-all; overflow: hidden; display: none;}
+	.detailCard .cardInfo .InfoContent p {margin-bottom: 0px;}
+ 	.detailCard .cardInfo .InfoContent p:hover {cursor: pointer; background-color: #dddddd;}
+ 	.detailCard .cardInfo .cardInfoContent {padding-bottom: 20px;}
+	.detailCard .cardInfo .cardInfoContent {display: none;}
+	.detailCard .cardInfo .cardInfoContent .btnCard, .btnCreateInfoContent {float: right; font-size: 0.8rem; display: none;}
+	.detailCard .cardInfo .cardInfoContent .btnCreateInfoContent {float: right; font-size: 0.8rem;}
+	.detailCard .cardInfo .cardInfoContent .btnCard button, .btnCreateInfoContent button {padding: 3px 10px 3px 10px;}
+	.detailCard .cardInfo .cardInfoContent .btnCreateInfoContent .btnCreateCardInfo {border: 1px solid #55beff; background-color: #55beff; color: white;}
+	.detailCard .cardInfo .cardInfoContent .btnCreateInfoContent .btnCreateCardInfo:hover {background-color: #009dff; border-color: #009dff;}
+	.detailCard .cardInfo .cardInfoContent .btnCreateInfoContent .btnCancelCardInfo {border: 1px solid #dddddd; background-color: white;}
+	.detailCard .cardInfo .cardInfoContent .btnCreateInfoContent .btnCancelCardInfo:hover {background-color: #dddddd;}
+	.detailCard .cardInfo .cardInfoContent .btnCard .btnEditCardInfoContent {border: 1px solid #55beff; background-color: #55beff; color: white;}
+	.detailCard .cardInfo .cardInfoContent .btnCard .btnEditCardInfoContent:hover {background-color: #009dff; border-color: #009dff;}
+	.detailCard .cardInfo .cardInfoContent .btnCard .btnDeleteCardInfoContent {border: 1px solid #dc3545; background-color: #dc3545; color: white;}
+	.detailCard .cardInfo .cardInfoContent .btnCard .btnDeleteCardInfoContent:hover {border-color: #ce0014; background-color: #ce0014;}
+	.detailCard .cardInfo .cardInfoContent .btnCard .btnCancelCardInfoContent {border: 1px solid #dddddd; background-color: white;}
+	.detailCard .cardInfo .cardInfoContent .btnCard .btnCancelCardInfoContent:hover {background-color: #dddddd;}
+	.detailCard .cardInfo span, .cardAttchFile span, .sharedMemberAdd span, .cardDateAdd span {border: 1px solid #55beff; padding: 5px; background-color: #55beff; color: white; font-size: 0.8rem; font-weight: normal;}
+	.detailCard .cardInfo span:hover, .cardAttchFile span:hover, .sharedMemberAdd span:hover, .cardDateAdd span:hover {background-color: #009dff; border-color: #009dff; cursor: pointer;}
+	
+	.detailCard .cardFile, .cardComment, .cardDate {border-top: 1px dashed #dddddd; margin-top: 20px;}
+	.detailCard .cardFile .cardFileTitle, .cardDateTitle {padding-top: 20px; padding-bottom: 20px;}
+	.detailCard .cardFile input.file-upload-button {border: 1px solid #55beff; background-color: #55beff; color: white;}
+	.detailCard .cardFile .cardAttachedFile .deleteAttachedFile:hover {cursor: pointer;}
+	.detailCard .cardAttachedFile {border: 2px dashed #dddddd; margin-top: 5px; padding: 10px;}
+	.detailCard .cardAttachedFile p {margin-bottom: 0px; font-size: 0.9rem; padding: 3px;}
+	
+	.detailCard .cardDate {overflow: hidden;}
+	.detailCard .cardDate input {font-size: 0.9rem;}
+	.detailCard .cardDate .updateCardDate {display: none;}
+	.detailCard .cardDate .updateCardDate button {padding: 3px 10px 3px 10px;}
+	.detailCard .cardDate .updateCardDate {padding-top: 10px; float: right; font-size: 0.8rem;}
+	.detailCard .cardDate .updateCardDate .btnUpdateCardDate {border: 1px solid #55beff; background-color: #55beff; color: white;}
+	.detailCard .cardDate .updateCardDate .btnUpdateCardDate:hover {background-color: #009dff; border-color: #009dff;}
+	.detailCard .cardDate .updateCardDate .btnCancelCardDate {border: 1px solid #dddddd; background-color: white;}
+	.detailCard .cardDate .updateCardDate .btnCancelCardDate:hover {background-color: #dddddd;}
+	
+	.detailCard .commentTitle {padding-top: 20px; padding-bottom: 7px; font-size: 0.8rem; font-weight: bold; border-bottom: 1px solid #dddddd;}
+	.detailCard .commentAdd .myComment {display: flex; margin-top: 10px;}
+	.detailCard .cardComment img {width: 30px; height: 30px; border-radius: 50%;}
+	.detailCard .commentAdd .myComment input {width: 82%; height: 30px; margin-left: 5px;}
+	.detailCard .commentAdd .myComment .btnComment {margin-left: 5px; font-size: 0.8rem;}
+	.detailCard .commentAdd .myComment .btnComment .btnAddComment {width:50px; height: 30px; border: 1px solid #55beff; background-color: #55beff; color: white;}
+	.detailCard .commentAdd .myComment .btnComment .btnAddComment:hover {background-color: #009dff; border-color: #009dff;}
+	.detailCard .commentList {height: 100%; min-height: 60px; margin-top: 10px;}
+	.detailCard .commentList .memberImg {position: absolute;}
+	.detailCard .commentList .comments {margin-left: 30px;}
+	.detailCard .commentList .comments p {margin: 0px 0px 0px 5px; padding-top: 5px; font-size: 0.9rem;}
+	.detailCard .commentList .comments span{font-size: 0.8rem; color: #888; margin-left: 5px;}
+</style>
+<script type="text/javascript">
+	$(function(){
+		// '카드 메뉴 생성 div([ + ])' 클릭 시, 카드 메뉴 생성 div 숨기고 input 태그 보이기
+		$(".plusIcon").on("click", function(){
+			$(this).css("display", "none");
+			$("#createCardMenu").find(".createCardMenuList").css("display", "block");
+			$("input[name='cardSj']").focus();
+			$("#createCardMenu").css("cursor", "auto");
+		});
+		
+		// '카드 메뉴 생성 div([ + ])' > '취소' 클릭 시, input 태그 숨기고 카드 생성 div 보이기
+		$("#btnCancelCardMenu").on("click", function(){
+			$(".createCardMenuList").css("display", "none");
+			$(".plusIcon").css("display", "block");
+			$("#createCardMenu").css("cursor", "pointer");
+		});
+		
+		// '댓글' 등록 시, 댓글 내용 보이기 
+		$("#btnAddComment").on("click", function(){
+			var commentInput = $("input[name='comment']");
+			var comment = commentInput.val();
+			
+			var now = new Date();
+			var year = now.getFullYear();	// 연
+			var month = now.getMonth() + 1;	// 월 
+			var date = now.getDate();		// 일
+			var hour = now.getHours();		// 시
+			var min = now.getMinutes();		// 분
+			
+			// 1~9월, 1~9일, 0~9시 앞에 0 붙여주기
+			if(month < 10){
+				month = "0" + month;
+			}
+			if(date < 10){
+				date = "0" + date;
+			}
+			if(hour < 10){
+				hour = "0" + hour;
+			}
+			if(min < 10){
+				min = "0" + min;
+			}
+			
+			var commentTime = year + "-" + month + "-" + date + " " + hour + ":" + min;
+			
+			var str = '<span class="memberImg"><img src="/resources/img/profile.png"></span>'
+					+ '<div class="comments">'
+					+ '<p>'+ comment +'</p>'
+					+ '<span>'+ commentTime +'</span>'
+					+ '</div>'
+					
+			$(".commentList").append(str);
+			commentInput.val(null);
+			commentInput.focus();
+		});
+		
+		// 카드 메뉴 조회
+		$.ajax({
+			url : "/todo/board/cardMenuList"
+			, type : "get"
+			, async : false
+			, success : function(cardMenu){
+// 				console.log(cardMenu)
+				if(cardMenu.length > 0){
+					for(var i=0; i<cardMenu.length; i++){
+						var str = '<div class="col-sm-2 cardMenu" id="cardMenu'+ cardMenu[i].cardMenuNo +'">'
+							+ '<div class="cardMenuTitle">'
+							+	'<span>'+ cardMenu[i].cardSj +'</span><span><i class="fas fa-align-justify"></i></span>'
+							+ '</div>'
+							+ '<div class="createCard" onclick="fn_blockCardList(this)">'
+							+	'<i class="fas fa-plus"></i>'
+							+ '</div>'
+							+	'<div class="createCardList">'
+							+		'<form id="cardFrm'+ cardMenu[i].cardMenuNo +'">'
+							+			'<input type="text" class="form-control" name="cardNm" >'
+							+			'<input type="hidden" class="form-control" name="cardMenuNo" value="'+ cardMenu[i].cardMenuNo +'">'
+							+			'<input type="hidden" class="form-control" name="boardNo" value="'+ cardMenu[i].boardNo +'">'
+							+			'<input type="hidden" class="form-control" name="wrterEmpno" value="'+ ${sessionScope.empVo.empno} +'">'
+							+		'</form>'
+							+			'<div class="btnCard">'
+							+				'<button id="btnCreateCard" type="button" onclick="fn_createCard('+ cardMenu[i].cardMenuNo + ')">저장</button>'
+							+				'<button id="btnCancelCard" type="button" onclick="fn_cancelCard(this)">취소</button>'
+							+			'</div>'
+							+	'</div>'
+						    +'</div>';
+						    
+						$("#createCardMenu").before(str);	
+					}
+					
+					// 카드 조회
+					$.ajax({
+						url : "/todo/board/cardList"
+						, type : "get"
+						, async : false
+						, success : function(card){
+ 							console.log(card);
+							if(card.length > 0){
+								for(var i=0; i<card.length; i++){
+									var str = '<div class="cards" id="card'+ card[i].cardNo +'" onclick="fn_updateCard('+ card[i].cardNo +')">'
+										+ 	'<div class="cardTitle">'
+										+		'<span>'+ card[i].cardNm +'</span>'
+										+	'</div>'
+										+	'<div class="cardContent">'
+										+	'</div>'
+										+	'<div class="shareMember">'
+										+	'</div>'
+										+ '</div>';
+									
+									var cardMenuId = "#cardMenu" + card[i].cardMenuNo +"";
+									$(""+ cardMenuId +" .createCard").before(str);					// '카드 생성 div[ + ]' 앞에 생성하기
+									
+									
+									if(card[i].cardCn == null){
+										card[i].cardCn = "";
+									}
+									
+									var cardModal = '<div class="modal detailCard" id="detailCard'+  card[i].cardNo +'" data-backdrop="static">'
+												+	'<div class="modal-dialog">'
+												+		'<div class="modal-content">'
+												+			'<div class="modal-header">'
+												+				'<span class="modal-title"><i class="fas fa-poll-h mr-2"></i>'+ card[i].cardNm +'</span>'
+												+				'<button type="button" class="close" data-dismiss="modal">&times;</button>'
+												+			'</div>'
+												+			'<div class="modal-body">'
+												+				'<input type="hidden" name="updtEmpno" value="'+${sessionScope.empVo.empno}+'">'
+												+				'<input type="hidden" id="boardNo'+ card[i].cardNo +'" name="boardNo" value="'+ card[i].boardNo +'">'
+												+				'<input type="hidden" id="cardMenuNo'+ card[i].cardNo +'" name="cardMenuNo" value="'+ card[i].cardMenuNo +'">'
+												+				'<input type="hidden" name="cardNo'+ card[i].cardNo +'" value="'+ card[i].cardNo +'">'
+												+					'<div class="cardInfo">'
+												+						'<span class="addCardInfo" onclick="fn_addCardInfo('+  card[i].cardNo +', this)"><i class="fas fa-plus mr-2"></i>설명</span>'
+												+						'<div class="InfoContent" onclick="fn_detailCardInfoContent('+  card[i].cardNo +', this)">'
+												+							'<p>'+ card[i].cardCn +'</p>'
+												+						'</div>'
+												+						'<div class="cardInfoContent">'
+												+							'<textarea rows="5" class="form-control" id="cardCn'+ card[i].cardNo +'" name="cardCn"></textarea>'
+												+							'<div class="btnCreateInfoContent">'
+												+								'<button id="btnCreateCardInfo" class="btnCreateCardInfo" type="button" onclick="fn_createCardInfo('+  card[i].cardNo +')">저장</button>'
+												+								'<button id="btnCancelCardInfo" class="btnCancelCardInfo" type="button" onclick="fn_cancelCardInfo('+  card[i].cardNo +')">취소</button>'
+												+							'</div>'
+												+							'<div class="btnCard">'
+												+								'<button id="btnEditCardInfoContent" class="btnEditCardInfoContent" type="button" onclick="fn_editCardInfoContent('+ card[i].cardNo +')">수정</button>'
+												+								'<button id="btnDeleteCardInfoContent" class="btnDeleteCardInfoContent" type="button" onclick="fn_deleteCardInfoContent('+  card[i].cardNo +')">삭제</button>'
+												+								'<button id="btnCancelCardInfoContent" class="btnCancelCardInfoContent" type="button" onclick="fn_cancelCardInfoContent('+  card[i].cardNo +')">취소</button>'
+												+							'</div>'
+												+						'</div>'
+												+					'</div>'
+												+					'<div class="cardFile">'
+												+						'<div class="cardFileTitle"><i class="fas fa-paperclip mr-2"></i><span>파일첨부</span></div>'
+												+						'<div class="cardAttchFile">'
+												+							'<label for="file'+ card[i].cardNo +'"><span><i class="fas fa-plus mr-2"></i>파일</span></label>'
+												+							'<input id="file'+ card[i].cardNo +'" class="file" type="file" style="display: none;" onchange="fn_attachFile('+ card[i].cardNo +')">'
+												+						'</div>' 
+												+						'<div class="cardAttachedFile">'
+												+						'</div>'
+												+					'</div>'
+												+					'<div class="cardDate">'
+												+						'<div class="cardDateTitle"><i class="fas fa-calendar-alt mr-2"></i><span>기한일</span></div>'
+												+						'<div class="cardDateAdd">'
+												+							'<input id="cardEndDt'+ card[i].cardNo +'" name="cardEndDt" type="date" value="'+ card[i].cardEndDate +'" class="form-control" onchange="fn_changeCardDate('+  card[i].cardNo +')">'
+												+						'</div>'
+												+						'<div class="updateCardDate">'
+												+							'<button id="btnUpdateCardDate" class="btnUpdateCardDate" type="button" onclick="fn_updateCardDate('+  card[i].cardNo +')">저장</button>'
+												+							'<button id="btnCancelCardDate" class="btnCancelCardDate" type="button" onclick="fn_CancelCardDate('+  card[i].cardNo +')">취소</button>'
+												+						'</div>'
+												+					'</div>'
+												+				'<div class="cardComment">'
+												+					'<div class="commentTitle"><span>댓글(댓글 수)</span></div>'
+												+					'<div class="commentAdd">'
+												+						'<div class="myComment">'
+												+							'<img src="/resources/img/profile.png">'
+												+							'<input type="text" class="form-control" name="answerCn">'
+												+							'<div class="btnComment">'
+												+								'<button id="btnAddComment" class="btnAddComment" type="button" onclick="fn_createComment('+ card[i].cardNo +')">등록</button>'
+												+							'</div>'
+												+						'</div>'
+												+						'<div class="commentList">'
+												+						'</div>'
+												+					'</div>'
+												+				'</div>'
+												+			'</div>'
+												+		'</div>'
+												+	'</div>'
+												+'</div>';
+										
+										var cardId = "#card" +  card[i].cardNo;
+										$(""+ cardId +"").after(cardModal);
+												
+								}
+							}
+						}
+					});
+				}
+			}
+		});
+		
+	}); // end jquery
+	
+	// 입력한 카드 메뉴이름으로 카드 메뉴 생성
+	function fn_createCardMenu(){
+		var cardSj = $("input[name='cardSj']");
+		
+		if( fn_isEmpty(cardSj.val()) ){
+			alert("카드 메뉴 이름을 입력하세요.");
+			cardSj.focus();
+			return false;
+		}
+		
+		// 카드 메뉴 생성
+		$.ajax({
+			url : "/todo/board/createCardMenu"
+			, type : "post"
+			, data : $("#cardMenuFrm").serialize()
+			, async : false
+			, success : function(createdCardMenuNo){
+// 				console.log(createdCardMenuNo);
+				// 카드 메뉴가 생성 성공 시(리턴 값 : insert된 카드메뉴 번호)
+				if(createdCardMenuNo != null){
+					// 생성된 카드메뉴 조회
+					$.ajax({
+						url : "/todo/board/createdCardMenuInfo"
+						, type : "post"
+						, data : {"cardMenuNo" : ""+ createdCardMenuNo +""}
+						, async : false
+						, success : function(createdCardMenuInfo){
+// 							console.log(createdCardMenuInfo);
+							// 해당 카드메뉴 정보가 존재하면(리턴 값 : todoVO)
+							if(createdCardMenuInfo != null){
+								var str = '<div class="col-sm-2 cardMenu" id="cardMenu'+ createdCardMenuInfo.cardMenuNo +'">'
+								+ '<div class="cardMenuTitle">'
+								+	'<span>'+ createdCardMenuInfo.cardSj +'</span><span><i class="fas fa-align-justify"></i></span>'
+								+ '</div>'
+								+ '<div class="createCard" onclick="fn_blockCardList(this)">'
+								+	'<i class="fas fa-plus"></i>'
+								+ '</div>'
+								+	'<div class="createCardList">'
+								+		'<form id="cardFrm'+ createdCardMenuInfo.cardMenuNo +'">'
+								+			'<input type="text" class="form-control" name="cardNm" >'
+								+			'<input type="hidden" class="form-control" name="cardMenuNo" value="'+ createdCardMenuInfo.cardMenuNo +'">'
+								+			'<input type="hidden" class="form-control" name="boardNo" value="'+ createdCardMenuInfo.boardNo +'">'
+								+			'<input type="hidden" class="form-control" name="wrterEmpno" value="'+ ${sessionScope.empVo.empno} +'">'
+								+		'</form>'
+								+			'<div class="btnCard">'
+								+				'<button id="btnCreateCard" type="button" onclick="fn_createCard('+ createdCardMenuInfo.cardMenuNo + ')">저장</button>'
+								+				'<button id="btnCancelCard" type="button" onclick="fn_cancelCard(this)">취소</button>'
+								+			'</div>'
+								+	'</div>'
+							    +'</div>';
+							    
+								$("#createCardMenu").before(str);	
+								$(".createCardMenuList").css("display", "none");	// 카드 메뉴 생성 input메뉴 숨기기
+			 					$(".plusIcon").css("display", "block");				// 카드 메뉴 생성 div 보이기
+			 					$("#createCardMenu").css("cursor", "pointer");
+							}
+						}						
+					});
+					
+				}else {
+					alert("다시 시도해주세요.");
+				}
+			}
+		});
+		
+	}
+	
+	// 카드 만들기 form 띄우기
+	function fn_blockCardList(obj){
+		$(obj).css("display", "none");					// '카드 생성 div[+]' 숨기기
+		$(obj).siblings(".createCardList").css("display", "block");	// 카드 생성 input 보이기
+		$("input[name='cardNm']").focus();			// input에 포커스
+	}
+	
+	// 카드 생성
+	function fn_createCard(cardMenuNo){
+		var cardMenuId = "#cardMenu" + cardMenuNo +"";	// 부모 카드메뉴 
+		var cardNm = $(""+ cardMenuId +" input[name='cardNm']");	// 입력한 카드 객체
+		var cardFrmId = "#cardFrm" + cardMenuNo;
+		
+		if( fn_isEmpty(cardNm.val()) ){
+			alert("카드 이름을 입력하세요.");
+			cardNm.focus();
+			return false;
+		}
+		
+		$.ajax({
+			url : "/todo/board/createCard"
+			, type : "post"
+			, data : $(""+cardFrmId+"").serialize()
+			, async : false
+			, success : function(createdCardNo){
+				if(createdCardNo != null){
+					$.ajax({
+						url : "/todo/board/createdCardInfo"
+						, type : "post"
+						, data : {"cardNo" : ""+ createdCardNo +""}
+						, async : false
+						, success : function(createdCardInfo){
+// 							console.log(createdCardInfo);
+							if(createdCardInfo != null){
+								var str = '<div class="cards" id="card'+ createdCardInfo.cardNo +'" onclick="fn_updateCard(' + createdCardInfo.cardNo + ')">'
+								+ 	'<div class="cardTitle">'
+								+		'<span>'+ createdCardInfo.cardNm +'</span>'
+								+	'</div>'
+								+	'<div class="cardContent">'
+								+	'</div>'
+								+	'<div class="shareMember">'
+								+	'</div>'
+								+ '</div>';
+							
+								var cardMenuId = "#cardMenu" + createdCardInfo.cardMenuNo +"";	// 구별되는 카드 id
+								$(""+ cardMenuId +" .createCard").before(str);					// '카드 생성 div[ + ]' 앞에 생성하기
+								$(""+ cardMenuId +" input[name='cardNm']").val(null);			// input 비우기
+								$(""+ cardMenuId +" .createCardList").css("display", "none");	// 카드 생성 ipput 숨기기
+								$(""+ cardMenuId +" .createCard").css("display", "block");		// 카드 생성 div 보이기
+							
+								var cardModal = '<div class="modal detailCard" id="detailCard'+ createdCardInfo.cardNo +'" data-backdrop="static">'
+												+	'<div class="modal-dialog">'
+												+		'<div class="modal-content">'
+												+			'<div class="modal-header">'
+												+				'<span class="modal-title"><i class="fas fa-poll-h mr-2"></i>'+ createdCardInfo.cardNm +'</span>'
+												+				'<button type="button" class="close" data-dismiss="modal">&times;</button>'
+												+			'</div>'
+												+			'<div class="modal-body">'
+												+				'<form id="cardDetailInfoFrm'+ createdCardInfo.cardNo +'">'
+												+					'<div class="cardInfo">'
+												+						'<span class="addCardInfo" onclick="fn_addCardInfo('+ createdCardInfo.cardNo +', this)"><i class="fas fa-plus mr-2"></i>설명</span>'
+												+						'<div class="InfoContent" onclick="fn_detailCardInfoContent('+ createdCardInfo.cardNo +', this)">'
+												+							'<p></p>'
+												+						'</div>'
+												+						'<div class="cardInfoContent">'
+												+							'<textarea rows="5" class="form-control" name="cardCn"></textarea>'
+												+							'<div class="btnCreateInfoContent">'
+												+								'<button id="btnCreateCardInfo" class="btnCreateCardInfo" type="button" onclick="fn_createCardInfo('+  createdCardInfo.cardNo +')">저장</button>'
+												+								'<button id="btnCancelCardInfo" class="btnCancelCardInfo" type="button" onclick="fn_cancelCardInfo('+  createdCardInfo.cardNo +')">취소</button>'
+												+							'</div>'
+												+							'<div class="btnCard">'
+												+								'<button id="btnEditCardInfoContent" class="btnEditCardInfoContent" type="button" onclick="fn_editCardInfoContent('+ createdCardInfo.cardNo +')">수정</button>'
+												+								'<button id="btnDeleteCardInfoContent" class="btnDeleteCardInfoContent" type="button" onclick="fn_deleteCardInfoContent('+ createdCardInfo.cardNo +')">삭제</button>'
+												+								'<button id="btnCancelCardInfoContent" class="btnCancelCardInfoContent" type="button" onclick="fn_cancelCardInfoContent('+ createdCardInfo.cardNo +')">취소</button>'
+												+							'</div>'
+												+						'<div>'
+												+					'</div>'
+												+				'</form>'
+												+				'<form id="cardDetailFileFrm'+ createdCardInfo.cardNo +'">'
+												+					'<div class="cardFile">'
+												+						'<div class="cardFileTitle"><i class="fas fa-paperclip mr-2"></i><span>파일첨부</span></div>'
+												+						'<div class="cardAttchFile">'
+												+							'<label for="file'+ createdCardInfo.cardNo +'"><span><i class="fas fa-plus mr-2"></i>파일</span></label>'
+												+							'<input id="file'+ createdCardInfo.cardNo +'" class="file" type="file" style="display: none;" onchange="fn_attachFile('+ createdCardInfo.cardNo +')">'
+												+						'</div>' 
+												+						'<div class="cardAttachedFile">'
+												+						'</div>'
+												+					'</div>'
+												+				'</form>'
+												+				'<form id="cardDetailDateFrm'+ createdCardInfo.cardNo +'">'
+												+					'<div class="cardDate">'
+												+						'<div class="cardDateTitle"><i class="fas fa-calendar-alt mr-2"></i><span>기한일</span></div>'
+												+						'<div class="cardDateAdd">'
+												+							'<input name="cardEndDt" type="date" class="form-control" onchange="fn_changeCardDate('+ createdCardInfo.cardNo +')">'
+												+						'</div>'
+												+						'<div class="updateCardDate">'
+												+							'<button id="btnUpdateCardDate" class="btnUpdateCardDate" type="button" onclick="fn_updateCardDate()">저장</button>'
+												+							'<button id="btnCancelCardDate" class="btnCancelCardDate" type="button" onclick="fn_CancelCardDate()">취소</button>'
+												+						'</div>'
+												+					'</div>'
+												+				'</form>'
+												+				'<form id="cardDetailCommentFrm'+ createdCardInfo.cardNo +'">'
+												+				'<div class="cardComment">'
+												+					'<div class="commentTitle"><span>댓글(댓글 수)</span></div>'
+												+					'<div class="commentAdd">'
+												+						'<div class="myComment">'
+												+							'<img src="/resources/img/profile.png">'
+												+							'<input type="text" class="form-control" name="answerCn">'
+												+							'<div class="btnComment">'
+												+								'<button id="btnAddComment" class="btnAddComment" type="button" onclick="fn_createComment('+ createdCardInfo.cardNo +')">등록</button>'
+												+							'</div>'
+												+						'</div>'
+												+						'<div class="commentList">'
+												+						'</div>'
+												+					'</div>'
+												+				'</div>'
+												+				'</form>'
+												+			'</div>'
+												+		'</div>'
+												+	'</div>'
+												+'</div>';
+										
+										var cardId = "#card" + createdCardInfo.cardNo;
+										$(""+ cardId +"").after(cardModal);
+							}
+// 							
+						}
+					});
+				}	
+			}
+		
+		
+		});
+		
+		
+	}
+	
+	// '카드 생성 div[ + ]' > 취소
+	function fn_cancelCard(obj){
+		$(obj).parents().find(".createCardList").css("display", "none");
+		$(obj).parents().find(".createCard").css("display", "block");
+	}
+	
+	// 파일 크기 포맷팅
+	function fileSizePrint(fileSize){
+	     var size = "";
+	     if (fileSize < 1024){
+	    	 size = fileSize + "B";
+	     }else if (fileSize < 1024 * 1024){
+	    	 size = parseInt (fileSize / 1024) + "KB";
+	     }else if (fileSize < 1024 * 1024 * 1024){
+	    	 size = parseInt (fileSize / (1024 * 1024)) + "M";
+	     }else size = parseInt (fileSize / (1024 * 1024 * 1024)) + "G";
+	     
+	     return size;
+	}
+	
+	// 생성된 카드 클릭 시 상세정보 기입 모달창 띄우기
+	function fn_updateCard(cardNo){
+		var cardModalId = "#detailCard" + cardNo;
+		
+		var cardCn = $("#detailCard"+ cardNo +" .InfoContent > p");
+		if(cardCn.text() != null  && cardCn.text() != ""){
+			$("#detailCard"+ cardNo +" .addCardInfo").css("display", "none");	// [설명+] 숨기기
+			$("#detailCard"+ cardNo +" .InfoContent").css("display", "block"); // 설명 내용 div 보이기
+			$("#detailCard"+ cardNo +" .cardInfoContent").css("display", "none"); // 
+		}
+		
+		$(""+ cardModalId +"").modal("show");
+	}
+	
+	// [설명+] 클릭 시 textarea 오픈
+	function fn_addCardInfo(cardNo, obj){
+		console.log(obj);
+		$(obj).css("display", "none");
+		$("#detailCard"+ cardNo +" .cardInfoContent").css("display", "block");
+		$("#detailCard"+ cardNo +" .btnCreateInfoContent").css("display", "block");
+	}
+	
+	// [설명+] -> [저장] 클릭 시
+	function fn_createCardInfo(cardNo){
+		// ajax data
+		var cardCn = $("#cardCn"+ cardNo +"");		// 카드 내용
+		var updtEmpno = $("input[name='updtEmpno']").val();		// 수정자 사번
+		console.log(updtEmpno);
+		var cardMenuNo = $("#cardMenuNo"+ cardNo +"").val();	// 해당 카드의 카드메뉴번호
+		var boardNo = $("#boardNo"+ cardNo +"").val();	// 해당 카드의 보드 번호
+		
+		if( fn_isEmpty(cardCn.val()) ){
+			alert("내용을 입력하세요.");
+			cardCn.focus();
+			return false;
+		}else {
+			$.ajax({
+				url : "/todo/card/editCardDesc"
+				, type : "post"
+				, data : {"cardCn" : cardCn.val(), "updtEmpno" : updtEmpno, "cardMenuNo" : cardMenuNo, "boardNo" : boardNo, "cardNo" : cardNo}
+				, success : function(data){
+					console.log(data);
+					
+					$("#detailCard"+ cardNo +" .btnCreateInfoContent").css("display", "none");		// [저장],[취소] 숨기기
+					$("#detailCard"+ cardNo +" .addCardInfo").css("display", "none");	// [설명+] 숨기기
+	 				$("#detailCard"+ cardNo +" .InfoContent > p").text(cardCn.val());	// 설명 내용 append
+					$("#detailCard"+ cardNo +" .InfoContent").css("display", "block"); // 설명 내용 div 보이기
+					$("#detailCard"+ cardNo +" .cardInfoContent").css("display", "none");
+				}
+			});	
+		}
+		
+	}
+	
+	// [설명+] -> [취소] 클릭 시 
+	function fn_cancelCardInfo(cardNo){
+		$("#detailCard"+ cardNo +" .cardInfoContent").css("display", "none");	// textarea 숨기기
+		$("#detailCard"+ cardNo +" .btnCreateInfoContent").css("display", "none");		// [저장],[취소] 숨기기
+		$("#detailCard"+ cardNo +" .addCardInfo").css("display", "inline"); // [설명+] 보이기
+	}
+	
+	// 설명 내용 클릭 시 
+	function fn_detailCardInfoContent(cardNo, obj){
+		var cardInfoContent = $("#detailCard"+ cardNo +" .InfoContent > p").text();	// 설명 내용 값
+		$(obj).css("display", "none");	// 설명 내용 숨기기
+		$("#detailCard"+ cardNo +" textarea[name='cardCn']").val(cardInfoContent);	// textarea에 설명내용 저장
+		$("#detailCard"+ cardNo +" .cardInfoContent").css("display", "block");	// textarea 보이기
+		$("#detailCard"+ cardNo +" .btnCard").css("display", "block");	// [수정],[삭제],[취소] 보이기
+	}
+	
+	// 설명 내용 -> [수정] 클릭 시
+	function fn_editCardInfoContent(cardNo){
+		// ajax data
+		var cardCn = $("#cardCn"+ cardNo +"");		// 카드 내용
+		var updtEmpno = $("input[name='updtEmpno']").val();		// 수정자 사번
+		var cardMenuNo = $("#cardMenuNo"+ cardNo +"").val();	// 해당 카드의 카드메뉴번호
+		var boardNo = $("#boardNo"+ cardNo +"").val();	// 해당 카드의 보드 번호
+		
+		if( fn_isEmpty(cardCn.val()) ){
+			alert("내용을 입력하세요.");
+			cardCn.focus();
+			return false;
+		}else {
+			$.ajax({
+				url : "/todo/card/editCardDesc"
+				, type : "post"
+				, data : {"cardCn" : cardCn.val(), "updtEmpno" : updtEmpno, "cardMenuNo" : cardMenuNo, "boardNo" : boardNo, "cardNo" : cardNo}
+				, success : function(data){
+					console.log(data);
+					
+					$("#detailCard"+ cardNo +" .btnCard").css("display", "none");	// [수정],[삭제],[취소] 숨기기
+	 				$("#detailCard"+ cardNo +" .InfoContent > p").text(cardCn.val());	// 설명 내용 append
+					$("#detailCard"+ cardNo +" .InfoContent").css("display", "block"); // 설명 내용 div 보이기
+					$("#detailCard"+ cardNo +" .cardInfoContent").css("display", "none");
+				}
+			});	
+		}
+	}
+	
+	// 설명 내용 -> [삭제] 클릭 시
+	function fn_deleteCardInfoContent(cardNo){
+		// ajax data
+		var cardCn = $("#cardCn"+ cardNo +"");		// 카드 내용
+		var updtEmpno = $("input[name='updtEmpno']").val();		// 수정자 사번
+		console.log(updtEmpno);
+		var cardMenuNo = $("#cardMenuNo"+ cardNo +"").val();	// 해당 카드의 카드메뉴번호
+		var boardNo = $("#boardNo"+ cardNo +"").val();	// 해당 카드의 보드 번호
+		
+		var check = confirm("삭제한 내용은 복구할 수 없습니다. 삭제하시겠습니까?");	
+		if(check == true){
+			cardCn.val(null);
+			$.ajax({
+				url : "/todo/card/editCardDesc"
+				, type : "post"
+				, data : {"cardCn" : cardCn.val(), "updtEmpno" : updtEmpno, "cardMenuNo" : cardMenuNo, "boardNo" : boardNo, "cardNo" : cardNo}
+				, success : function(result){
+					if(result == 1){
+						$("#detailCard"+ cardNo +" .btnCard").css("display", "none");	// [수정],[삭제],[취소] 숨기기
+		 				$("#detailCard"+ cardNo +" .InfoContent > p").text(cardCn.val());	// 설명 내용 append
+		 				$("#detailCard"+ cardNo +" .addCardInfo").css("display", "inline"); // [설명+] 보이기
+						$("#detailCard"+ cardNo +" .cardInfoContent").css("display", "none");
+					}
+				
+				}
+			});
+		}
+		
+	}
+	
+	// 설명 내용 -> [취소] 클릭 시
+	function fn_cancelCardInfoContent(cardNo){
+		$("#detailCard"+ cardNo +" .cardInfoContent").css("display", "none");	// textarea 숨기기
+		$("#detailCard"+ cardNo +" .btnCard").css("display", "none");	// [수정],[삭제],[취소] 숨기기
+		$("#detailCard"+ cardNo +" .InfoContent").css("display", "block"); // 설명 내용 보이기
+		
+	}
+	
+	// [파일+]로 파일 첨부 시, '파일 이름(파일크기)' 세팅
+	function fn_attachFile(cardNo){
+		var fileName = $("#file"+ cardNo +"").val();
+		var fileSize = $("#file"+ cardNo +"")[0].files[0].size;
+		var str = '<p><span><i class="fas fa-paperclip mr-2"></i></span>'+ fileName +'<span>('+ fileSizePrint(fileSize) +')<span><span class="deleteAttachedFile" onclick="fn_deleteAttachedFile()"><i class="fas fa-times ml-2"></i></span></p>';
+		$("#detailCard"+ cardNo +" .cardAttachedFile").append(str);
+	}
+	
+	
+	// 기한일 변경 시 [저장], [취소] 버튼 보이기
+	function fn_changeCardDate(cardNo){
+		$("#detailCard"+ cardNo +" .updateCardDate").css("display", "block");
+	}
+	
+	// 기한일 -> [저장] 클릭 시
+	function fn_updateCardDate(cardNo){
+		var cardEndDt = $("#cardEndDt"+ cardNo +"");			// 기한일
+		var updtEmpno = $("input[name='updtEmpno']").val();		// 수정자 사번
+		var cardMenuNo = $("#cardMenuNo"+ cardNo +"").val();	// 해당 카드의 카드메뉴번호
+		var boardNo = $("#boardNo"+ cardNo +"").val();	// 해당 카드의 보드 번호
+		
+		$.ajax({
+			url : "/todo/card/editCardEndDate"
+			, type : "post"
+			, data : {"cardEndDt" : cardEndDt.val(), "updtEmpno" : updtEmpno, "cardMenuNo" : cardMenuNo, "boardNo" : boardNo, "cardNo" : cardNo}
+			, success : function(result){
+				if(result == 1){
+					cardEndDt.val(cardEndDt.val());
+					$("#detailCard"+ cardNo +" .updateCardDate").css("display", "none");
+				}
+			}
+		});
+	}
+	
+	
+</script>
+<div id="body">
+	<div class="lefr-menu-list-content">
+		<div class="boardTitle" style="padding: 20px 0px 20px 10px; display: flex;">
+			<h3>${detailBoard.boardNm}</h3>
+			<a class="bkmkYN">
+			<c:if test="${detailBoard.bkmk eq 'N'}">
+			<i class="fas fa-star fa-lg" style="color: #ddd"></i>
+			</c:if>
+			<c:if test="${detailBoard.bkmk eq 'Y'}">
+			<i class="fas fa-star fa-lg" style="color: gold"></i>
+			</c:if>
+			</a>
+		</div>
+		<div class="row">
+			<div class="col-sm-2" id="createCardMenu">
+				<div class="plusIcon" style="padding-top: 20px; padding-bottom: 15px;">
+					<i class="fas fa-plus"></i>
+				</div>
+				<div class="createCardMenuList">
+					<form id="cardMenuFrm">
+						<input type="hidden" name="boardNo" value="${detailBoard.boardNo}">
+						<input type="text" class="form-control" name="cardSj" >
+						<div class="btnCard">
+							<button id="btnCreateCardMenu" type="button" onclick="fn_createCardMenu()">저장</button>
+							<button id="btnCancelCardMenu" type="button">취소</button>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+		<a href="#" data-toggle="modal" data-target="#detailCard">모달</a>
+	</div>
+
+	<!-- 카드 상세 모달 -->
+	<div class="modal detailCard" id="detailCard" data-backdrop="static">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<span class="modal-title"><i class="fas fa-poll-h mr-2"></i>카드이름</span>
+					<button type="button" class="close" data-dismiss="modal">&times;</button>
+				</div>
+				<div class="modal-body">
+					<form id="cardDetailInfoFrm">
+						<div class="cardInfo">
+							<span><i class="fas fa-plus mr-2"></i>설명</span>
+							<div class="InfoContent">
+								<p></p>
+								<textarea rows="5" class="form-control" name="cardCn"></textarea>
+								<div class="btnCard">
+									<button id="btnCancelCardInfo" class="btnCancelCardInfo" type="button" onclick="fn_cancelCardInfoContent()">취소</button>
+									<button id="btnCreateCardInfo" class="btnCreateCardInfo" type="button" onclick="fn_createCardInfoContent()">저장</button>
+									<button id="btnEditCardInfoContent" class="btnEditCardInfoContent" type="button" onclick="fn_editCardInfoContent()">수정</button>
+									<button id="btnDeleteCardInfoContent" class="btnDeleteCardInfoContent" type="button" onclick="fn_deleteCardInfoContent()">삭제</button>
+									<button id="btnCancelCardInfoContent" class="btnCancelCardInfoContent" type="button" onclick="fn_cancelCardInfoContent()">취소</button>
+								</div>
+							</div>
+						</div>
+					</form>
+					<form id="cardDetailFileFrm">
+						<div class="cardFile">
+							<div class="cardFileTitle"><i class="fas fa-paperclip mr-2"></i><span>파일첨부</span></div>
+							<div class="cardAttchFile">
+								<label for="file"><span><i class="fas fa-plus mr-2"></i>파일</span></label>
+								<input id="file" type="file" style="display: none;">
+							</div>
+							<div class="cardAttachedFile">
+							</div>
+						</div>
+					</form>
+					<form id="cardDetailDateFrm">
+						<div class="cardDate">
+							<div class="cardDateTitle"><i class="fas fa-calendar-alt mr-2"></i><span>기한일</span></div>
+							<div class="cardDateAdd">
+								<input name="cardEndDt" type="date" class="form-control selectCardDate">
+							</div>
+							<div class="updateCardDate">
+								<button id="btnUpdateCardDate" class="btnUpdateCardDate" type="button" onclick="fn_updateCardDate()">저장</button>
+								<button id="btnCancelCardDate" class="btnCancelCardDate" type="button" onclick="fn_CancelCardDate()">취소</button>
+							</div>
+						</div>
+					</form>
+					<form id="cardDetailCommentFrm">
+					<div class="cardComment">
+						<div class="commentTitle"><span>댓글(댓글 수)</span></div>
+						<div class="commentAdd">
+							<div class="myComment">
+								<img src="/resources/img/profile.png">
+								<input type="text" class="form-control" name="answerCn">
+								<div class="btnComment">
+									<button id="btnAddComment" class="btnAddComment" type="button" onclick="fn_createComment()">등록</button>
+								</div>
+							</div>
+							<div class="commentList">
+							</div>
+						</div>
+					</div>
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

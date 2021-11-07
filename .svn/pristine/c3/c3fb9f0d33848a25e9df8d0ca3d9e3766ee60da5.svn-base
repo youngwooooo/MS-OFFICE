@@ -1,0 +1,15 @@
+package kr.or.ddit.ehr.mapper;
+
+import java.util.List;
+
+import kr.or.ddit.ehr.vo.EhrVO;
+
+public interface EhrMapper {
+	
+	int insert(EhrVO ev);
+	
+	List<EhrVO> select(EhrVO empVo);
+
+	int total(EhrVO ev);
+	
+}

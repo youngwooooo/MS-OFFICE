@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.bogo.mapper.BogoMapper">
+	<!-- private int reprtListNo;  //보고서 목록번호
+	private int reprtNo;  //보고서 번호
+	private int reportrEmpno; // 보고자 사번
+	private String sj; //제목
+	private String cn; //내용
+	private String writngTm; //작성 시간
+	private int col; //파일 번호
+	private int updtEmpno; //수정자 사번
+	private String updtTm; // 수정 시각
+	private int rnum; -->
+
+   <!-- 전체조회 -->
+   <select id="bogoList" parameterType="kr.or.ddit.bogo.vo.BogoVo"
+      resultType="kr.or.ddit.bogo.vo.BogoVo">
+     SELECT 
+       REPRT_LIST_NO
+     , REPRT_NO
+     , REPORTR_EMPNO
+     , SJ
+     , CN
+     , WRITNG_TM
+     ,DEPARTMENT
+	 FROM TB_REPRT
+   </select>
+	
+   <select id="bogoMenuList" parameterType="kr.or.ddit.bogo.vo.BogoVo"
+      resultType="kr.or.ddit.bogo.vo.BogoVo">
+     SELECT
+    REPRT_LIST_NO,
+    OPRTR_EMPNO,
+    SJ,
+    CN,
+    FILE_NO,
+    DEPARTMENT
+    ,WRITNG_TM
+FROM
+    TB_REPRT_LIST
+       ORDER BY
+   REPRT_LIST_NO
+   </select>
+
+   <insert id="bogoInsert"
+      parameterType="kr.or.ddit.bogo.vo.BogoVo">
+<selectKey order="BEFORE" resultType="int" keyProperty="fileNo">
+      	SELECT NVL(MAX(FILE_NO),0)+1 file_no FROM TB_FILE
+      </selectKey>
+      INSERT INTO TB_REPRT (
+       REPRT_LIST_NO
+      ,REPRT_NO
+      ,REPORTR_EMPNO
+      ,SJ
+      ,CN
+      ,WRITNG_TM
+      ,FILE_NO
+      )
+      VALUES
+      (
+      #{reprtListNo}
+      ,(SELECT NVL(MAX(REPRT_NO),0)+1 FROM TB_REPRT)
+      ,(SELECT NVL(MAX(REPORTR_EMPNO),0)+1 FROM TB_REPRT)
+      ,#{sj}
+      ,#{cn}
+      ,sysdate
+      ,#{fileNo}
+     
+      )
+      </insert>
+<insert id="bogozaInsert"  parameterType="kr.or.ddit.bogo.vo.BogoVo">
+   INSERT INTO TB_REPORTR (
+   REPRT_LIST_NO 
+   ,REPORTR_EMPNO 
+) VALUES (
+    (SELECT NVL(MAX(REPRT_LIST_NO),0)+1 FROM TB_REPORTR)
+    ,#{reportrEmpno}
+)
+</insert>
+<insert id="masterInsert"  parameterType="kr.or.ddit.bogo.vo.BogoVo">
+INSERT INTO TB_RSPNBER (
+    REPRT_LIST_NO
+    ,RSPNBER_EMPNO
+) VALUES (
+    (SELECT NVL(MAX(REPRT_LIST_NO),0)+1 FROM TB_RSPNBER)
+    ,#{rspnberEmpno}
+)
+</insert>
+   <insert id="bogoAdd" parameterType="kr.or.ddit.bogo.vo.BogoVo">
+      <selectKey order="BEFORE" resultType="int" keyProperty="fileNo">
+      	SELECT NVL(MAX(FILE_NO),0)+1 file_no FROM TB_FILE
+      </selectKey>
+      INSERT INTO TB_REPRT_LIST (
+      REPRT_LIST_NO
+	  ,OPRTR_EMPNO
+	  ,SJ
+	  ,CN
+	  ,FILE_NO
+	  ,DEPARTMENT
+	  ,WRITNG_TM
+      )
+      VALUES
+      (
+      (SELECT NVL(MAX(REPRT_LIST_NO),0)+1 FROM TB_REPRT_LIST)
+      ,#{oprtrEmpno}
+      ,#{sj}
+      ,#{cn}
+      ,#{fileNo}
+      ,'MS그룹'
+      ,sysdate
+      )
+   </insert>
+
+   <!-- 상세보기 -->
+   <select id="bogoDetail" parameterType="String"
+      resultType="kr.or.ddit.bogo.vo.BogoVo">
+      SELECT REPRT_NO, SJ, CN,
+      WRITNG_TM, FILE_NO
+      FROM TB_REPRT
+      WHERE REPRT_NO = #{reprtNo}
+   </select>
+
+   <!-- 삭제 -->
+   <delete id="bogoDelete" parameterType="String">
+      DELETE FROM TB_REPRT
+      WHERE
+      REPRT_NO = #{reprtNo}
+   </delete>
+
+   <!-- 수정 -->
+   <update id="bogoUpdate" parameterType="kr.or.ddit.bogo.vo.BogoVo">
+      UPDATE TB_REPRT
+      SET REPORTR_EMPNO = #{reportrEmpno}, SJ = #{sj}, CN= #{cn}, reprtListNo = #{reprtListNo}
+      , WRITNG_TM = sysdate, FILE_NO = #{file_No}
+      WHERE REPRT_NO = #{reprtNo}
+   </update>
+
+
+</mapper>

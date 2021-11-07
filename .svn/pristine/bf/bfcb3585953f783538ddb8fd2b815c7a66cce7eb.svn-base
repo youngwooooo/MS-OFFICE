@@ -1,0 +1,16 @@
+package kr.or.ddit.ehr.service;
+
+import java.util.List;
+
+import kr.or.ddit.ehr.vo.EhrVO;
+
+public interface EhrService {
+
+	int insert(EhrVO ev);
+
+	List<EhrVO> time(EhrVO ev);
+
+	int total(EhrVO ev);
+
+
+}

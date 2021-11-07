@@ -1,0 +1,998 @@
+	<%@ page language="java" contentType="text/html; charset=UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<!-- 공통 css -->
+<style>
+.left-menu-list {
+	position: absolute;
+	border-right: 1px solid #dee2e6;
+	height: 100%;
+	width: 260px;
+	float: left;
+}
+
+.lefr-menu-list-content {
+	margin-left: 260px;
+	padding-left: 10px;
+	padding-right: 10px;
+}
+
+.left-menu-list a {
+	color: black;
+}
+
+.left-menu-list a:hover {
+	color: black;
+}
+
+.menu-name {
+	padding: 20px 20px 10px 20px;
+}
+
+.menu-create {
+	padding: 0px 20px 20px 20px;
+}
+
+.menu-list {
+	padding: 0px 20px 20px 20px;
+}
+
+#btCreateBoard {
+	width: 100%;
+	height: 60px;
+	border-color: black;
+	background-color: white;
+}
+
+#btCreateBoard:hover {
+	box-shadow: 0px 5px 15px #dddddd;
+}
+
+#btCreateBoard>span {
+	font-size: 1rem;
+}
+
+.menu-list .menu-list-ul {
+	list-style: none;
+	padding-left: 0px;
+	margin-bottom: 0px;
+}
+
+.menu-list li {
+	padding-left: 40px;
+	margin-top: 3px;
+}
+
+.menu-list li:hover {
+	background-color: #f7f8f9;
+}
+
+.menu-list span {
+	font-size: 0.9rem;
+}
+
+.btn1 {
+	background-color: white !important;
+	border-radius: 60px !important;
+	width: 100px !important;
+	height: 54px !important;
+	margin-bottom: 5px !important;
+	border: 1px gray solid !important;
+}
+
+.btn2 {
+	text-align : center;
+	background-color: white !important;
+	border-radius: 60px !important;
+	width: 200px !important;
+	height: 54px !important;
+	margin-bottom: 20px !important;
+	border: 1px gray solid !important;
+}
+/* 근태관리css */
+.wrap_ehr_data {
+	border: 2px solid gray;
+}
+
+#div1 {
+	float: left;
+	margin-left: 50px;
+	margin-right: 50px;
+}
+
+#lt {
+	background-color: white;
+	border: 1px solid white;
+	font-size: 2em;
+}
+
+#div2 {
+	border: 2px solid gray;
+	height: 25px;
+}
+
+#div3 {
+	border: 2px solid gray;
+	height: 300px;
+	color: gray;
+	text-align: center;
+	line-height: 300px;
+}
+
+#change {
+	font-size: 14px;
+	font-family: 'Noto Sans KR', 맑은 고딕, 돋움, malgun gothic, dotum,
+		AppleGothic, Helvetica, sans-serif;
+	color: #333;
+	white-space: normal;
+	letter-spacing: -0.5px;
+	word-break: break-all;
+	display: inline-block;
+	font-weight: 500;
+}
+
+#info {
+	font-size: 14px;
+	font-family: 'Noto Sans KR', 맑은 고딕, 돋움, malgun gothic, dotum,
+		AppleGothic, Helvetica, sans-serif;
+	color: #333;
+	white-space: normal;
+	letter-spacing: -0.5px;
+	font-weight: normal;
+	word-break: break-all;
+}
+
+#day_area {
+	font-size: 14px;
+	font-family: 'Noto Sans KR', 맑은 고딕, 돋움, malgun gothic, dotum,
+		AppleGothic, Helvetica, sans-serif;
+	color: #333;
+	white-space: normal;
+	letter-spacing: -0.5px;
+	font-weight: normal;
+	word-break: break-all;
+	margin: 0;
+	padding: 0;
+	margin-top: -1px;
+	border: 1px solid gray;
+	border-left: none;
+	border-right: none;
+}
+
+#table{
+text-align : left;
+width: 100%;
+    border-top: 1px solid #444444;
+    border-collapse: collapse;
+  }
+  th, td {
+    border-bottom: 1px solid #444444;
+    padding: 10px;
+  }
+
+</style>
+<script>
+$(function(){
+	fn_getFullTime();	 
+	fn_getTime();
+	setInterval(fn_getFullTime, 1000);
+	setInterval(fn_getTime, 1000);
+	
+});
+</script>
+
+<body>
+<div id="body">
+	<div class="left-menu">
+		<div class="left-menu-list">
+			<div class="menu-name"><h2><a href="#">근태관리</a></h2></div>
+			<div class="menu-create">
+				<div class="Today"></div>
+				<div class="spWorkTime" style="width:60px; height:25px; line-height:25px; color:#666;font-size:30px; text-align:center;" id="sysdate"></div>
+				<div class="divStartWorkTime"><span class="spWorkTimeName">출근시간</span>&nbsp;&nbsp;<span class="spWorkTime" id="spWorkTime"><c:if test="${timeList[0].rcordCode eq 'D101'}">${timeList[0].tm2}</c:if></span></div>
+				<div class="divEndWorkTime"><span class="spWorkTimeName">퇴근시간</span>&nbsp;&nbsp;<span class="spWorkTime" id="spWorkTimeEnd"><c:if test="${timeList[1].rcordCode eq 'D102'}">${timeList[1].tm2}</c:if></span></div>
+				<div class="divEndWorkTime"><span class="spWorkTimeName">주간 누적 근무시간</span>&nbsp;&nbsp;<span id="weeklyworktime"></span></div>
+				<div class="divWorkBtn">
+					<button id="btnStartWork" type="button" class="btn1">출근</button>
+					<button id="btnEndWork" type="button" class="btn1">퇴근</button>
+					<select name='fruits'  class="btn2">
+						<option value='' selected>업 무  상 태  변 경</option>
+						<option value='apple'>업무</option>
+						<option value='banana'>업무종료</option>
+						<option value='lemon'>외근</option> 
+						<option value='lemon'>출장</option> 
+						<option value='lemon'>반차</option> 
+					</select>
+				</div>
+			</div>
+			<form action="/ehr/time" method="post" id="fm">
+		      <input type="hidden" id="spWorkTime" class="fadeIn first" name="spWorkTime">
+		      <input type="hidden" id="spWorkTimeEnd" class="fadeIn second" name="spWorkTimeEnd">
+		      <input type="hidden" id="rcordCode" class="fadeIn third" name="rcordCode">
+		      <input type="hidden" id="" class="fadeIn third" name="">
+		    </form>
+			<div class="menu-list">
+				<a href="#" class="toggle-menu-list"><i class="fas fa-angle-down mr-2"></i><strong>근태관리</strong></a>
+				<ul class="menu-list-ul">
+					<li>		
+						<a href="/ehr/content"><span>내 근태관리</span></a>
+					</li>
+					<li>
+						<a href="/ehr/vacation"><span>내 연차 내역</span></a>
+					</li>
+					<li>
+						<a href="/ehr/info"><span>내 인사 정보</span></a>
+					</li>
+					<li>
+						<a href="#"><span>부서 근태현황</span></a>
+					</li>
+					<li>
+						<a href="#"><span>타임라인</span></a>
+					</li>
+				</ul>
+			</div>
+		</div>
+		<div class="lefr-menu-list-content">
+			<!-- 메뉴에 따른 내용 -->
+			<h1>근태 현황</h1>
+	<div style="text-align: center">
+		<h2>
+			<button type="button" onclick="lt()" id="lt">&lt;</button>
+			<span id="time" style="font-size: 1.5em"> </span>
+			<button type="button" onclick="gt()" id="lt">&gt;</button>
+			<span style="font-size: 50%" id="today">오늘</span>
+		</h2>
+	</div>
+	<div>
+	<span id="info"><b>(기본근태) B형</b> 자유출퇴근</span>
+	</div>
+	<div class="wrap_ehr_data">
+		<div class="ehr_stat_data" id="div1">
+			<p class="stat_tit">이번주 누적</p>
+			<p class="stat_txt ">7h 44m 44s</p>
+		</div>
+		<span class="divide_bar"></span>
+		<div class="ehr_stat_data" id="div1">
+			<p class="stat_tit">이번주 초과</p>
+			<p class="stat_txt">0h 0m 0s</p>
+		</div>
+		<div class="ehr_stat_data" id="div1">
+			<p class="stat_tit">이번주 잔여</p>
+			<p class="stat_txt">32h 15m 16s</p>
+		</div>
+		<span class="divide_bar"></span>
+		<div class="ehr_stat_data month_data" id="div1"  style="margin-right:100px;">
+			<p class="stat_tit">이번달 누적</p>
+			<p class="stat_txt">4h 47m 40s</p>
+		</div>
+		<div class="ehr_stat_data month_data" >
+			<p class="stat_tit">이번달 연장</p>
+			<p class="stat_txt">0h 0m 0s</p>
+		</div>
+	</div>
+	<br><br><br>
+	<div>
+		</div>
+		<section class="wrap_tb_tit">
+       
+        <label id="weekToggle"><h2 class="table_tit"><span class="btn_wrap"><span class="ic_ehr ic_close" id="weekToggle"><i class="fas fa-chevron-down"></i></span></span><span id="weekToggle">1 주차</span>
+        </h2></label>
+        <div class="tb_optional" style="float:right">
+            <span class="txt">누적 근무시간 <strong class="">9h 54m 39s</strong></span>
+            <span class="desc">(초과 근무시간 <strong>0h 0m 0s</strong>)</span>
+        </div>
+    </section>
+    <div class="wrap_tb_shadow" id="day_area" style="display: none;">
+		<table id="table">
+		<thead>
+		<tr>
+		<td> </td>
+		<td>일자</td>
+		<td>업무시작</td>
+		<td>업무종료</td>
+		<td>총 근무시간</td>
+		</tr>
+		</thead>
+		<tbody>
+		<tr>
+		<td><p style="float: right !important; margin-bottom: 0px">1</p></td>
+		<td>월</td>
+		<td><c:if test="${timeList[0].rcordCode eq 'D101'}">${timeList[0].tm2}</c:if></td>
+		<td id="workoff"><c:if test="${timeList[1].rcordCode eq 'D102'}">${timeList[1].tm2}</c:if></td>
+		<td><span id="workAccmltTm" style="display: none"></span></td>
+		</tr>
+		<tr>
+		<td><p style="float: right !important; margin-bottom: 0px">2</p></td>
+		<td>화</td>
+		<td><c:if test="${timeList[0].rcordCode eq 'D101'}">${timeList[0].tm2}</c:if></td>
+		<td><c:if test="${timeList[1].rcordCode eq 'D102'}">${timeList[1].tm2}</c:if></td>
+		<td>999999999시간</td>
+		</tr>
+		<tr>
+		<td><p style="float: right !important; margin-bottom: 0px">3</p></td>
+		<td>수</td>
+		<td><c:if test="${timeList[0].rcordCode eq 'D101'}">${timeList[0].tm2}</c:if></td>
+		<td><c:if test="${timeList[1].rcordCode eq 'D102'}">${timeList[1].tm2}</c:if></td>
+		<td>999999999시간</td>
+		</tr>
+		<tr>
+		<td><p style="float: right !important; margin-bottom: 0px">4</p></td>
+		<td>목</td>
+		<td><c:if test="${timeList[0].rcordCode eq 'D101'}">${timeList[0].tm2}</c:if></td>
+		<td><c:if test="${timeList[1].rcordCode eq 'D102'}">${timeList[1].tm2}</c:if></td>
+		<td>999999999시간</td>
+		</tr>
+		<tr>
+		<td><p style="float: right !important; margin-bottom: 0px">5</p></td>
+		<td>금</td>
+		<td><c:if test="${timeList[0].rcordCode eq 'D101'}">${timeList[0].tm2}</c:if></td>
+		<td><c:if test="${timeList[1].rcordCode eq 'D102'}">${timeList[1].tm2}</c:if></td>
+		<td>999999999시간</td>
+		</tr>
+		<tr>
+		<td><p style="float: right !important; margin-bottom: 0px; color: blue;">6</p></td>
+		<td style="color: blue;">토</td>
+		<td><c:if test="${timeList[0].rcordCode eq 'D101'}">${timeList[0].tm2}</c:if></td>
+		<td><c:if test="${timeList[1].rcordCode eq 'D102'}">${timeList[1].tm2}</c:if></td>
+		<td>999999999시간</td>
+		</tr>
+		<tr>
+		<td><p style="float: right !important; margin-bottom: 0px; color: red;">7</p></td>
+		<td style="color: red;">일</td>
+		<td><c:if test="${timeList[0].rcordCode eq 'D101'}">${timeList[0].tm2}</c:if></td>
+		<td><c:if test="${timeList[1].rcordCode eq 'D102'}">${timeList[1].tm2}</c:if></td>
+		<td>999999999시간</td>
+		</tr>
+		</tbody>
+	</table>
+	</div>
+		<section class="wrap_tb_tit">
+       
+        <label id="weekToggle2"><h2 class="table_tit"><span class="btn_wrap"><span class="ic_ehr ic_close" id="weekToggle2"><i class="fas fa-chevron-down"></i></span></span><span id="weekToggle2">2 주차</span>
+        </h2></label>
+        <div class="tb_optional" style="float:right">
+            <span class="txt">누적 근무시간 <strong class="">9h 54m 39s</strong></span>
+            <span class="desc">(초과 근무시간 <strong>0h 0m 0s</strong>)</span>
+        </div>
+    </section>
+    <div class="wrap_tb_shadow" id="day_area2" style="display: none;">
+		<table id="table">
+		<thead>
+		<tr>
+		<td> </td>
+		<td>일자</td>
+		<td>업무시작</td>
+		<td>업무종료</td>
+		<td>총 근무시간</td>
+		</tr>
+		</thead>
+		<tbody>
+		<tr>
+		<td><p style="float: right !important; margin-bottom: 0px">1</p></td>
+		<td>월</td>
+		<td><c:if test="${timeList[0].rcordCode eq 'D101'}">${timeList[0].tm2}</c:if></td>
+		<td id="workoff"><c:if test="${timeList[1].rcordCode eq 'D102'}">${timeList[1].tm2}</c:if></td>
+		<td><span id="workAccmltTm" style="display: none"></span></td>
+		</tr>
+		<tr>
+		<td><p style="float: right !important; margin-bottom: 0px">2</p></td>
+		<td>화</td>
+		<td><c:if test="${timeList[0].rcordCode eq 'D101'}">${timeList[0].tm2}</c:if></td>
+		<td><c:if test="${timeList[1].rcordCode eq 'D102'}">${timeList[1].tm2}</c:if></td>
+		<td>999999999시간</td>
+		</tr>
+		<tr>
+		<td><p style="float: right !important; margin-bottom: 0px">3</p></td>
+		<td>수</td>
+		<td><c:if test="${timeList[0].rcordCode eq 'D101'}">${timeList[0].tm2}</c:if></td>
+		<td><c:if test="${timeList[1].rcordCode eq 'D102'}">${timeList[1].tm2}</c:if></td>
+		<td>999999999시간</td>
+		</tr>
+		<tr>
+		<td><p style="float: right !important; margin-bottom: 0px">4</p></td>
+		<td>목</td>
+		<td><c:if test="${timeList[0].rcordCode eq 'D101'}">${timeList[0].tm2}</c:if></td>
+		<td><c:if test="${timeList[1].rcordCode eq 'D102'}">${timeList[1].tm2}</c:if></td>
+		<td>999999999시간</td>
+		</tr>
+		<tr>
+		<td><p style="float: right !important; margin-bottom: 0px">5</p></td>
+		<td>금</td>
+		<td><c:if test="${timeList[0].rcordCode eq 'D101'}">${timeList[0].tm2}</c:if></td>
+		<td><c:if test="${timeList[1].rcordCode eq 'D102'}">${timeList[1].tm2}</c:if></td>
+		<td>999999999시간</td>
+		</tr>
+		<tr>
+		<td><p style="float: right !important; margin-bottom: 0px; color: blue;">6</p></td>
+		<td style="color: blue;">토</td>
+		<td><c:if test="${timeList[0].rcordCode eq 'D101'}">${timeList[0].tm2}</c:if></td>
+		<td><c:if test="${timeList[1].rcordCode eq 'D102'}">${timeList[1].tm2}</c:if></td>
+		<td>999999999시간</td>
+		</tr>
+		<tr>
+		<td><p style="float: right !important; margin-bottom: 0px; color: red;">7</p></td>
+		<td style="color: red;">일</td>
+		<td><c:if test="${timeList[0].rcordCode eq 'D101'}">${timeList[0].tm2}</c:if></td>
+		<td><c:if test="${timeList[1].rcordCode eq 'D102'}">${timeList[1].tm2}</c:if></td>
+		<td>999999999시간</td>
+		</tr>
+		</tbody>
+	</table>
+	</div>
+		<section class="wrap_tb_tit">
+       
+        <label id="weekToggle3"><h2 class="table_tit"><span class="btn_wrap"><span class="ic_ehr ic_close" id="weekToggle3"><i class="fas fa-chevron-down"></i></span></span><span id="weekToggle3">3 주차</span>
+        </h2></label>
+        <div class="tb_optional" style="float:right">
+            <span class="txt">누적 근무시간 <strong class="">9h 54m 39s</strong></span>
+            <span class="desc">(초과 근무시간 <strong>0h 0m 0s</strong>)</span>
+        </div>
+    </section>
+    <div class="wrap_tb_shadow" id="day_area3" style="display: none;">
+		<table id="table">
+		<thead>
+		<tr>
+		<td> </td>
+		<td>일자</td>
+		<td>업무시작</td>
+		<td>업무종료</td>
+		<td>총 근무시간</td>
+		</tr>
+		</thead>
+		<tbody>
+		<tr>
+		<td><p style="float: right !important; margin-bottom: 0px">1</p></td>
+		<td>월</td>
+		<td><c:if test="${timeList[0].rcordCode eq 'D101'}">${timeList[0].tm2}</c:if></td>
+		<td id="workoff"><c:if test="${timeList[1].rcordCode eq 'D102'}">${timeList[1].tm2}</c:if></td>
+		<td><span id="workAccmltTm" style="display: none"></span></td>
+		</tr>
+		<tr>
+		<td><p style="float: right !important; margin-bottom: 0px">2</p></td>
+		<td>화</td>
+		<td><c:if test="${timeList[0].rcordCode eq 'D101'}">${timeList[0].tm2}</c:if></td>
+		<td><c:if test="${timeList[1].rcordCode eq 'D102'}">${timeList[1].tm2}</c:if></td>
+		<td>999999999시간</td>
+		</tr>
+		<tr>
+		<td><p style="float: right !important; margin-bottom: 0px">3</p></td>
+		<td>수</td>
+		<td><c:if test="${timeList[0].rcordCode eq 'D101'}">${timeList[0].tm2}</c:if></td>
+		<td><c:if test="${timeList[1].rcordCode eq 'D102'}">${timeList[1].tm2}</c:if></td>
+		<td>999999999시간</td>
+		</tr>
+		<tr>
+		<td><p style="float: right !important; margin-bottom: 0px">4</p></td>
+		<td>목</td>
+		<td><c:if test="${timeList[0].rcordCode eq 'D101'}">${timeList[0].tm2}</c:if></td>
+		<td><c:if test="${timeList[1].rcordCode eq 'D102'}">${timeList[1].tm2}</c:if></td>
+		<td>999999999시간</td>
+		</tr>
+		<tr>
+		<td><p style="float: right !important; margin-bottom: 0px">5</p></td>
+		<td>금</td>
+		<td><c:if test="${timeList[0].rcordCode eq 'D101'}">${timeList[0].tm2}</c:if></td>
+		<td><c:if test="${timeList[1].rcordCode eq 'D102'}">${timeList[1].tm2}</c:if></td>
+		<td>999999999시간</td>
+		</tr>
+		<tr>
+		<td><p style="float: right !important; margin-bottom: 0px; color: blue;">6</p></td>
+		<td style="color: blue;">토</td>
+		<td><c:if test="${timeList[0].rcordCode eq 'D101'}">${timeList[0].tm2}</c:if></td>
+		<td><c:if test="${timeList[1].rcordCode eq 'D102'}">${timeList[1].tm2}</c:if></td>
+		<td>999999999시간</td>
+		</tr>
+		<tr>
+		<td><p style="float: right !important; margin-bottom: 0px; color: red;">7</p></td>
+		<td style="color: red;">일</td>
+		<td><c:if test="${timeList[0].rcordCode eq 'D101'}">${timeList[0].tm2}</c:if></td>
+		<td><c:if test="${timeList[1].rcordCode eq 'D102'}">${timeList[1].tm2}</c:if></td>
+		<td>999999999시간</td>
+		</tr>
+		</tbody>
+	</table>
+	</div>
+		<section class="wrap_tb_tit">
+       
+        <label id="weekToggle4"><h2 class="table_tit"><span class="btn_wrap"><span class="ic_ehr ic_close" id="weekToggle4"><i class="fas fa-chevron-down"></i></span></span><span id="weekToggle4">4 주차</span>
+        </h2></label>
+        <div class="tb_optional" style="float:right">
+            <span class="txt">누적 근무시간 <strong class="">9h 54m 39s</strong></span>
+            <span class="desc">(초과 근무시간 <strong>0h 0m 0s</strong>)</span>
+        </div>
+    </section>
+    <div class="wrap_tb_shadow" id="day_area4" style="display: none;">
+		<table id="table">
+		<thead>
+		<tr>
+		<td> </td>
+		<td>일자</td>
+		<td>업무시작</td>
+		<td>업무종료</td>
+		<td>총 근무시간</td>
+		</tr>
+		</thead>
+		<tbody>
+		<tr>
+		<td><p style="float: right !important; margin-bottom: 0px">1</p></td>
+		<td>월</td>
+		<td><c:if test="${timeList[0].rcordCode eq 'D101'}">${timeList[0].tm2}</c:if></td>
+		<td id="workoff"><c:if test="${timeList[1].rcordCode eq 'D102'}">${timeList[1].tm2}</c:if></td>
+		<td><span id="workAccmltTm" style="display: none"></span></td>
+		</tr>
+		<tr>
+		<td><p style="float: right !important; margin-bottom: 0px">2</p></td>
+		<td>화</td>
+		<td><c:if test="${timeList[0].rcordCode eq 'D101'}">${timeList[0].tm2}</c:if></td>
+		<td><c:if test="${timeList[1].rcordCode eq 'D102'}">${timeList[1].tm2}</c:if></td>
+		<td>999999999시간</td>
+		</tr>
+		<tr>
+		<td><p style="float: right !important; margin-bottom: 0px">3</p></td>
+		<td>수</td>
+		<td><c:if test="${timeList[0].rcordCode eq 'D101'}">${timeList[0].tm2}</c:if></td>
+		<td><c:if test="${timeList[1].rcordCode eq 'D102'}">${timeList[1].tm2}</c:if></td>
+		<td>999999999시간</td>
+		</tr>
+		<tr>
+		<td><p style="float: right !important; margin-bottom: 0px">4</p></td>
+		<td>목</td>
+		<td><c:if test="${timeList[0].rcordCode eq 'D101'}">${timeList[0].tm2}</c:if></td>
+		<td><c:if test="${timeList[1].rcordCode eq 'D102'}">${timeList[1].tm2}</c:if></td>
+		<td>999999999시간</td>
+		</tr>
+		<tr>
+		<td><p style="float: right !important; margin-bottom: 0px">5</p></td>
+		<td>금</td>
+		<td><c:if test="${timeList[0].rcordCode eq 'D101'}">${timeList[0].tm2}</c:if></td>
+		<td><c:if test="${timeList[1].rcordCode eq 'D102'}">${timeList[1].tm2}</c:if></td>
+		<td>999999999시간</td>
+		</tr>
+		<tr>
+		<td><p style="float: right !important; margin-bottom: 0px; color: blue;">6</p></td>
+		<td style="color: blue;">토</td>
+		<td><c:if test="${timeList[0].rcordCode eq 'D101'}">${timeList[0].tm2}</c:if></td>
+		<td><c:if test="${timeList[1].rcordCode eq 'D102'}">${timeList[1].tm2}</c:if></td>
+		<td>999999999시간</td>
+		</tr>
+		<tr>
+		<td><p style="float: right !important; margin-bottom: 0px; color: red;">7</p></td>
+		<td style="color: red;">일</td>
+		<td><c:if test="${timeList[0].rcordCode eq 'D101'}">${timeList[0].tm2}</c:if></td>
+		<td><c:if test="${timeList[1].rcordCode eq 'D102'}">${timeList[1].tm2}</c:if></td>
+		<td>999999999시간</td>
+		</tr>
+		</tbody>
+	</table>
+	</div>
+		<section class="wrap_tb_tit">
+       
+        <label id="weekToggle5"><h2 class="table_tit"><span class="btn_wrap"><span class="ic_ehr ic_close" id="weekToggle5"><i class="fas fa-chevron-down"></i></span></span><span id="weekToggle5">5 주차</span>
+        </h2></label>
+        <div class="tb_optional" style="float:right">
+            <span class="txt">누적 근무시간 <strong class="">9h 54m 39s</strong></span>
+            <span class="desc">(초과 근무시간 <strong>0h 0m 0s</strong>)</span>
+        </div>
+    </section>
+    <div class="wrap_tb_shadow" id="day_area5" style="display: none;">
+		<table id="table">
+		<thead>
+		<tr>
+		<td> </td>
+		<td>일자</td>
+		<td>업무시작</td>
+		<td>업무종료</td>
+		<td>총 근무시간</td>
+		</tr>
+		</thead>
+		<tbody>
+		<tr>
+		<td><p style="float: right !important; margin-bottom: 0px">1</p></td>
+		<td>월</td>
+		<td><c:if test="${timeList[0].rcordCode eq 'D101'}">${timeList[0].tm2}</c:if></td>
+		<td id="workoff"><c:if test="${timeList[1].rcordCode eq 'D102'}">${timeList[1].tm2}</c:if></td>
+		<td><span id="workAccmltTm" style="display: none"></span></td>
+		</tr>
+		<tr>
+		<td><p style="float: right !important; margin-bottom: 0px">2</p></td>
+		<td>화</td>
+		<td><c:if test="${timeList[0].rcordCode eq 'D101'}">${timeList[0].tm2}</c:if></td>
+		<td><c:if test="${timeList[1].rcordCode eq 'D102'}">${timeList[1].tm2}</c:if></td>
+		<td>999999999시간</td>
+		</tr>
+		<tr>
+		<td><p style="float: right !important; margin-bottom: 0px">3</p></td>
+		<td>수</td>
+		<td><c:if test="${timeList[0].rcordCode eq 'D101'}">${timeList[0].tm2}</c:if></td>
+		<td><c:if test="${timeList[1].rcordCode eq 'D102'}">${timeList[1].tm2}</c:if></td>
+		<td>999999999시간</td>
+		</tr>
+		<tr>
+		<td><p style="float: right !important; margin-bottom: 0px">4</p></td>
+		<td>목</td>
+		<td><c:if test="${timeList[0].rcordCode eq 'D101'}">${timeList[0].tm2}</c:if></td>
+		<td><c:if test="${timeList[1].rcordCode eq 'D102'}">${timeList[1].tm2}</c:if></td>
+		<td>999999999시간</td>
+		</tr>
+		<tr>
+		<td><p style="float: right !important; margin-bottom: 0px">5</p></td>
+		<td>금</td>
+		<td><c:if test="${timeList[0].rcordCode eq 'D101'}">${timeList[0].tm2}</c:if></td>
+		<td><c:if test="${timeList[1].rcordCode eq 'D102'}">${timeList[1].tm2}</c:if></td>
+		<td>999999999시간</td>
+		</tr>
+		<tr>
+		<td><p style="float: right !important; margin-bottom: 0px; color: blue;">6</p></td>
+		<td style="color: blue;">토</td>
+		<td><c:if test="${timeList[0].rcordCode eq 'D101'}">${timeList[0].tm2}</c:if></td>
+		<td><c:if test="${timeList[1].rcordCode eq 'D102'}">${timeList[1].tm2}</c:if></td>
+		<td>999999999시간</td>
+		</tr>
+		<tr>
+		<td><p style="float: right !important; margin-bottom: 0px; color: red;">7</p></td>
+		<td style="color: red;">일</td>
+		<td><c:if test="${timeList[0].rcordCode eq 'D101'}">${timeList[0].tm2}</c:if></td>
+		<td><c:if test="${timeList[1].rcordCode eq 'D102'}">${timeList[1].tm2}</c:if></td>
+		<td>999999999시간</td>
+		</tr>
+		</tbody>
+	</table>
+	</div>
+    <div id="div2">
+    	<span id="change"><b>변경이력</b> 0</span>
+        </div>	
+    	<div id="div3">
+    		변경 이력이 없습니다.
+    	</div>
+	</div>
+	</div>
+		<form action="/ehr/total" method="post" id="fm1">
+			<input type="hidden" id="workAccmltTm2" class="fadeIn first" name="workAccmltTm">
+			<input type="hidden" id="empNo2" class="fadeIn first" name="empNo">
+		</form>
+	</div>
+	<script type="text/javascript">
+	//자바스크립트로 입력받은 날짜가 해당 달의 몇 주차인지 구하는 함수 
+	function weekNumberByMonth(dateFormat) {
+		  const inputDate = new Date(dateFormat);
+		 
+		  // 인풋의 년, 월
+		  let year = inputDate.getFullYear();
+		  let month = inputDate.getMonth() + 1;
+		 
+		  // 목요일 기준 주차 구하기
+		  const weekNumberByThurFnc = (paramDate) => {
+		 
+		    const year = paramDate.getFullYear();
+		    const month = paramDate.getMonth();
+		    const date = paramDate.getDate();
+		 
+		    // 인풋한 달의 첫 날과 마지막 날의 요일
+		    const firstDate = new Date(year, month, 1);
+		    const lastDate = new Date(year, month+1, 0);
+		    const firstDayOfWeek = firstDate.getDay() === 0 ? 7 : firstDate.getDay();
+		    const lastDayOfweek = lastDate.getDay();
+		 
+		    // 인풋한 달의 마지막 일
+		    const lastDay = lastDate.getDate();
+		 
+		    // 첫 날의 요일이 금, 토, 일요일 이라면 true
+		    const firstWeekCheck = firstDayOfWeek === 5 || firstDayOfWeek === 6 || firstDayOfWeek === 7;
+		    // 마지막 날의 요일이 월, 화, 수라면 true
+		    const lastWeekCheck = lastDayOfweek === 1 || lastDayOfweek === 2 || lastDayOfweek === 3;
+		 
+		    // 해당 달이 총 몇주까지 있는지
+		    const lastWeekNo = Math.ceil((firstDayOfWeek - 1 + lastDay) / 7);
+		 
+		    // 날짜 기준으로 몇주차 인지
+		    let weekNo = Math.ceil((firstDayOfWeek - 1 + date) / 7);
+		 
+		    // 인풋한 날짜가 첫 주에 있고 첫 날이 월, 화, 수로 시작한다면 'prev'(전달 마지막 주)
+		    if(weekNo === 1 && firstWeekCheck) weekNo = 'prev';
+		    // 인풋한 날짜가 마지막 주에 있고 마지막 날이 월, 화, 수로 끝난다면 'next'(다음달 첫 주)
+		    else if(weekNo === lastWeekNo && lastWeekCheck) weekNo = 'next';
+		    // 인풋한 날짜의 첫 주는 아니지만 첫날이 월, 화 수로 시작하면 -1;
+		    else if(firstWeekCheck) weekNo = weekNo -1;
+		 
+		    return weekNo;
+		  };
+		 
+		  // 목요일 기준의 주차
+		  let weekNo = weekNumberByThurFnc(inputDate);
+		 
+		  // 이전달의 마지막 주차일 떄
+		  if(weekNo === 'prev') {
+		    // 이전 달의 마지막날
+		    const afterDate = new Date(year, month-1, 0);
+		    year = month === 1 ? year - 1 : year;
+		    month = month === 1 ? 12 : month - 1;
+		    weekNo = weekNumberByThurFnc(afterDate);
+		  }
+		  // 다음달의 첫 주차일 때
+		  if(weekNo === 'next') {
+		    year = month === 12 ? year + 1 : year;
+		    month = month === 12 ? 1 : month + 1;
+		    weekNo = 1;
+		  }
+		 
+// 		  return {year, month, weekNo};
+			return weekNo;
+		}
+
+		//현재 시각
+		var now = new Date();
+
+		// 년/월/일/요일
+		var year = now.getFullYear();
+		var month = now.getMonth() + 1;
+		var date = now.getDate();
+		var date1 = year + "." + month + "." + date;
+		var dayInt = now.getDay();
+		var Time = (now.getFullYear()) + "." + (now.getMonth() + 1) + "." + (now.getDate());
+		
+		var startDayOfMonth = new Date(year, month-1, 1);
+		var endDayOfMonth = new Date(year, month, 0);
+		//이번달의 시작일
+		var startDayOfDay = startDayOfMonth.getDate();
+		//이번달의 종료일
+		var endDayOfDay = endDayOfMonth.getDate();
+		
+		console.log(startDayOfMonth + ", " + endDayOfMonth + ", " + endDayOfDay + ", 오늘의 주차 : " + weekNumberByMonth('2018-09-05'));
+		
+		for(var i=1;i<=endDayOfDay;i++){
+			var mm = month;
+			if(mm<10){
+				mm = "0" + mm;
+			}
+			if(i<10){
+				i = "0" + i
+			}
+			if(i%7==1){
+			console.log(year + "-" + mm + "-" + i + ", " + weekNumberByMonth(year + "-" + mm + "-" + i));
+			}
+		}
+			
+
+		// 년/월/일/요일/시/분/초 구하기
+		function fn_getFullTime() {
+			// 요일(숫자)을 요일(한글)로 바꾸기
+			var week = new Array("일요일", "월요일", "화요일", "수요일", "목요일", "금요일", "토요일");
+			var dayStr = week[dayInt]; // 일요일
+			var day = dayStr.substring(0, 1); // 일
+
+			// 시/분/초
+			var hour = now.getHours();
+			var min = now.getMinutes();
+			var sec = now.getSeconds();
+
+			if (hour < 10) {
+				hour = "0" + hour;
+			}
+			if (min < 10) {
+				min = "0" + min;
+			}
+			if (sec < 10) {
+				sec = "0" + sec;
+			}
+
+			var currentDay = year + "년 " + month + "월 " + date + "일 " + "("	+ day + ") ";
+
+			$(".Today").text(currentDay);
+		}
+
+		// 시/분/초만 구하기
+		function fn_getTime() {
+			var now = new Date();
+
+			// 시/분/초
+			var hour = now.getHours();
+			var min = now.getMinutes();
+			var sec = now.getSeconds();
+
+			if (hour < 10) {
+				hour = "0" + hour;
+			}
+			if (min < 10) {
+				min = "0" + min;
+			}
+			if (sec < 10) {
+				sec = "0" + sec;
+			}
+
+			var currentTime = hour + ":" + min + ":" + sec;
+			$("#sysdate").text(currentTime);
+		}
+		function lt() {
+			date--;
+			if (date == 0) {
+				if (month == 4 || month == 6 || month == 9 || month == 11) {
+					date = 30;
+				} else {
+					date = 31;
+					spWorkTime
+				}
+				month--;
+			}
+			if (month == 13) {
+				month == 1;
+				year--;
+			}
+			date1 = year + "." + month + "." + date;
+			var curTime = date1
+			$("#time").text(curTime);
+		}
+
+		function gt() {
+			date++;
+			if (month == 4 || month == 6 || month == 9 || month == 11) {
+				if (date == 31) {
+					date = 1;
+					month++;
+				}
+			}
+			if (date == 32) {
+				date = 1;
+				month++;
+			}
+			if (month == 0) {
+				month = 12;
+				year++;
+			}
+			date1 = year + "." + month + "." + date;
+			var curTime = date1
+			$("#time").text(curTime);
+
+		}
+
+		//시/분/초만 구하기
+		var now = new Date();
+
+		// 시/분/초
+		var hour = now.getHours();
+		var min = now.getMinutes();
+		var sec = now.getSeconds();
+
+		if (hour < 10) {
+			hour = "0" + hour;
+		}
+		if (min < 10) {
+			min = "0" + min;
+		}
+		if (sec < 10) {
+			sec = "0" + sec;
+		}
+
+		var currentTime = hour + ":" + min + ":" + sec;
+
+		console.log(currentTime);
+
+		$("#time").text(Time);
+
+		$("#today").click(function() {
+			$("#time").text(Time);
+		});
+
+		$("#btnStartWork").click(function() {
+			var now = new Date();
+
+			// 시/분/초
+			var hour = now.getHours();
+			var min = now.getMinutes();
+			var sec = now.getSeconds();
+
+			if (hour < 10) {
+				hour = "0" + hour;
+			}
+			if (min < 10) {
+				min = "0" + min;
+			}
+			if (sec < 10) {
+				sec = "0" + sec;
+			}
+
+			var currentTime = hour + ":" + min + ":" + sec;
+
+			$.ajax({
+				url : "/ehr/insert",
+				type : 'POST',
+				data : {
+					"empNo" : "${empVo.empno}",
+					"tm3" : currentTime,
+					"rcordCode" : "D101"
+				},
+				success : function(data) {
+					$("#spWorkTime").text(currentTime);
+					console.log(rcordCode);
+					document.getElementById('fm').submit(); 
+				}
+
+			});
+
+		});
+		$("#btnEndWork").click(function() {
+			var now = new Date();
+
+			// 시/분/초
+			var hour = now.getHours();
+			var min = now.getMinutes();
+			var sec = now.getSeconds();
+
+			if (hour < 10) {
+				hour = "0" + hour;
+			}
+			if (min < 10) {
+				min = "0" + min;
+			}
+			if (sec < 10) {
+				sec = "0" + sec;
+			}
+
+			var currentTime = hour + ":" + min + ":" + sec;
+
+			$.ajax({
+				url : "/ehr/insert",
+				type : 'POST',
+				data : {
+					"empNo" : "${empVo.empno}",
+					"tm3" : currentTime,
+					"rcordCode" : "D102"
+				},
+	            success : function(data){
+	            	$("#spWorkTimeEnd").text(currentTime);
+					document.getElementById('fm').submit();
+					document.getElementById('fm1').submit();
+	            }
+				
+			});
+
+		});
+		const timeend =$("#spWorkTimeEnd").text();
+		console.log(timeend);
+    	const timestart =$("#spWorkTime").text();
+    	console.log(timestart);
+    	const timeend1 = new Date(Time + " " + timeend);
+    	console.log(timeend1);
+    	const timestart1 = new Date(Time + " " + timestart);
+    	console.log(timestart1);
+    	const elapsedMSec = timeend1 - timestart1;
+    	console.log(elapsedMSec);
+    	const elapsedHour = Math.floor(elapsedMSec / 1000 / 60 / 60);
+    	const elapsedMin = Math.floor(elapsedMSec / 1000 / 60) - elapsedHour*60;
+    	const elapsedSec = elapsedMSec / 1000;
+
+    	$("#workAccmltTm").text(elapsedHour + "시간" + elapsedMin + "분");
+    	console.log($("#workAccmltTm").text());
+    	$("#workAccmltTm2").val($("#workAccmltTm").text());
+    	$("#empNo2").val($("#workAccmltTm").text());
+    	console.log($("#workAccmltTm2").val());
+
+		if(timestart != ""){
+			$("#btnStartWork").attr("disabled", true);
+			$("#btnEndWork").attr("disabled", false);
+		}
+		if(timeend != ""){
+			$("#btnStartWork").attr("disabled", true);
+			$("#btnEndWork").attr("disabled", true);
+		}
+		
+		if(elapsedMSec > 0){
+			$("#workAccmltTm").css("display", '');
+		}
+		
+		$("#weekToggle").click(function() {
+			$("#day_area").slideToggle();
+		});
+		$("#weekToggle2").click(function() {
+			$("#day_area2").slideToggle();
+		});
+		$("#weekToggle3").click(function() {
+			$("#day_area3").slideToggle();
+		});
+		$("#weekToggle4").click(function() {
+			$("#day_area4").slideToggle();
+		});
+		$("#weekToggle5").click(function() {
+			$("#day_area5").slideToggle();
+		});
+		
+	</script>
+</body>

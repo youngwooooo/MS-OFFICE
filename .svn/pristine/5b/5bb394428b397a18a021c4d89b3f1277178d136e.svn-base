@@ -1,0 +1,77 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.calendar.mapper.CalendarMapper">
+	<!-- 모든 일정 목록 가져오기 -->
+	<select id="selectScheduleList" resultType="calendarVO">
+		SELECT
+			SCHDUL_NO
+			, EMPNO
+			, BEGIN_TM
+			, END_TM
+			, OTHBC_AT
+			, SJ
+			, CN
+			, COLOR
+			, CATEGORY
+			, TO_CHAR(BEGIN_DT, 'YYYY-MM-dd') AS BEGIN_DT
+			, TO_CHAR(END_DT, 'YYYY-MM-dd') AS END_DT
+		FROM
+			TB_CLDR
+	</select>
+	
+	<!-- 일정 수정 -->
+	<update id="editSchedule" parameterType="calendarVO">
+		UPDATE
+			TB_CLDR
+		SET
+			EMPNO = #{empno}
+			, BEGIN_TM = #{beginTm}
+			, END_TM = #{endTm}
+			, OTHBC_AT = #{othbcAt}
+			, SJ = #{sj}
+			, CN = #{cn}
+			, COLOR = #{color}
+			, CATEGORY = #{category}
+			, BEGIN_DT = #{beginDt}
+			, END_DT = #{endDt}
+		WHERE
+			SCHDUL_NO = #{schdulNo}
+	</update>
+	
+	<!-- 일정 삭제 -->
+	<delete id="deleteSchedule" parameterType="int">
+		DELETE FROM TB_CLDR
+		WHERE SCHDUL_NO = #{schdulNo}
+	</delete>
+	
+	<!-- 일정 등록 -->
+	<insert id="createSchedule" parameterType="calendarVO">
+		<selectKey order="BEFORE" keyProperty="schdulNo" resultType="int">
+			SELECT NVL(MAX(SCHDUL_NO),0) + 1 FROM TB_CLDR
+		</selectKey>
+		INSERT INTO
+		TB_CLDR
+			(SCHDUL_NO
+				, EMPNO
+				, BEGIN_TM
+				, END_TM
+				, OTHBC_AT
+				, SJ
+				, CN
+				, COLOR
+				, CATEGORY
+				, BEGIN_DT
+				, END_DT)
+		VALUES
+				(#{schdulNo}
+				, #{empno}
+				, #{beginTm}
+				, #{endTm}
+				, #{othbcAt}
+				, #{sj}
+				, #{cn}
+				, #{color}
+				, #{category}
+				, TO_DATE(#{beginDt}, 'YYYY-MM-dd')
+				, TO_DATE(#{endDt}, 'YYYY-MM-dd'))
+	</insert>
+</mapper>

@@ -1,0 +1,59 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.organization.mapper.OrganizationMapper">
+	<select id="organizationEmpList" resultType="ozVO">
+		SELECT T.EMPNO AS empno
+			, T.DEPT_CODE AS deptCode     
+			, T.RSPOFC_CODE AS rspofcCode   
+			, T.OFCPS_CODE AS ofcpsCode   
+			, T.SUPRR_EMPNO AS suprrEmpno      
+			, T.NM AS nm           
+			, T.EMAIL AS email        
+			, T.TELNO AS telno
+			, T.ZIP AS zip
+			, T.ADRES AS adres
+			, T.ADRES_DETAIL AS adresDetail
+			, T.ECNY_DE AS ecnyDe
+			, T.RETIRE_DE AS retireDe 
+			, T.FILE_NO AS fileNo
+			, T.FILE_NM AS fileNm     
+			, T.FILE_COURS AS fileCours    
+			, T.FILE_ORGINL_NM AS fileOrginlNm 
+			, T.DEPT_NM AS deptNm    
+			, T.RSPOFC_NM AS rspofcNm     
+			, T.OFCPS_NM AS ofcpsNm
+			, T.SUPRR_DEPT_CODE AS suprrDeptCode
+		FROM
+		(SELECT  E.EMPNO
+			, E.DEPT_CODE
+			, E.RSPOFC_CODE
+			, E.OFCPS_CODE
+			, E.SUPRR_EMPNO
+			, E.NM
+			, E.EMAIL
+			, E.TELNO
+			, E.ZIP
+			, E.ADRES
+			, E.ADRES_DETAIL
+			, E.ECNY_DE
+			, E.RETIRE_DE
+			, E.FILE_NO
+			, F.FILE_NM
+			, F.FILE_COURS
+			, F.FILE_ORGINL_NM
+			, A.NM AS DEPT_NM
+			, B.NM AS RSPOFC_NM
+			, C.NM AS OFCPS_NM
+			, D.SUPRR_DEPT_CODE 
+		FROM
+			TB_EMPL E, TB_UNITY_CODE A, TB_UNITY_CODE B, TB_UNITY_CODE C, TB_DEPT D, TB_FILE F
+		WHERE E.DEPT_CODE = A.CODE 
+		  AND E.RSPOFC_CODE = B.CODE(+)
+		  AND E.OFCPS_CODE = C.CODE
+		  AND E.DEPT_CODE = D.DEPT_CODE
+		  AND E.FILE_NO = F.FILE_NO 
+		START WITH E.SUPRR_EMPNO IS NULL
+		CONNECT BY PRIOR E.EMPNO = E.SUPRR_EMPNO
+		) T
+<!-- 		ORDER BY T.DEPT_CODE DESC -->
+	</select>
+</mapper>

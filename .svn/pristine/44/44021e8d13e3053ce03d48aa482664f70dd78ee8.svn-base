@@ -1,0 +1,198 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<!DOCTYPE html>
+<html>
+<head>
+<title>Insert title here</title>
+</head>
+<style>
+.left-menu-list {
+	position: absolute;
+	border-right: 1px solid #dee2e6;
+	height: 100%;
+	width: 260px;
+	float: left;
+}
+
+.lefr-menu-list-content {
+	margin-left: 260px;
+	padding-left: 10px;
+	padding-right: 10px;
+}
+
+.left-menu-list a {
+	color: black;
+}
+
+.left-menu-list a:hover {
+	color: black;
+}
+
+.menu-name {
+	padding: 20px 20px 10px 20px;
+}
+
+.menu-create {
+	padding: 0px 20px 20px 20px;
+}
+
+.menu-list {
+	padding: 0px 20px 20px 20px;
+}
+
+#btCreateBoard {
+	width: 100%;
+	height: 60px;
+	border-color: black;
+	background-color: white;
+}
+
+#btCreateBoard:hover {
+	box-shadow: 0px 5px 15px #dddddd;
+}
+
+#btCreateBoard>span {
+	font-size: 1rem;
+}
+
+.menu-list .menu-list-ul {
+	list-style: none;
+	padding-left: 0px;
+	margin-bottom: 0px;
+}
+
+.menu-list li {
+	padding-left: 40px;
+	margin-top: 3px;
+}
+
+.menu-list li:hover {
+	background-color: #f7f8f9;
+}
+
+.menu-list span {
+	font-size: 0.9rem;
+}
+
+.btn1 {
+	background-color: white !important;
+	border-radius: 60px !important;
+	width: 100px !important;
+	height: 54px !important;
+	margin-bottom: 5px !important;
+	border: 1px gray solid !important;
+}
+
+.btn2 {
+	background-color: white !important;
+	border-radius: 60px !important;
+	width: 200px !important;
+	height: 54px !important;
+	margin-bottom: 20px !important;
+	border: 1px gray solid !important;
+}
+</style>
+<body>
+<div id="body">
+	<div class="left-menu">
+		<div class="left-menu-list">
+			<div class="menu-name"><h2><a href="#">근태관리</a></h2></div>
+			<div class="menu-create">
+				<div class="Today"></div>
+				<div class="spWorkTime" style="width:60px; height:25px; line-height:25px; color:#666;font-size:30px; text-align:center;"></div>
+				<div class="divStartWorkTime"><span class="spWorkTimeName">출근시간</span><span class="spWorkTime" id="spWorkTime"></span></div>
+				<div class="divEndWorkTime"><span class="spWorkTimeName">퇴근시간</span><span class="spWorkTime" id="spWorkTimeEnd"></span></div>
+				<div class="divEndWorkTime"><span class="spWorkTimeName">주간 누적 근무시간</span><span>9h 54m 39s</span></div>
+				<div class="divWorkBtn">
+					<button id="btnStartWork" type="button" class="btn1">출근</button>
+					<button id="btnEndWork" type="button" class="btn1">퇴근</button>
+					<button id="btnStatusWork" type="button" class="btn2" data-toggle="dropdown">업무상태변경<i class="fas fa-caret-down fa-lg ml-2"></i></button>
+					<div class="dropdown-menu">
+						<ul>
+							<li>업무</li>
+							<li>업무종료</li>
+							<li>외근</li>
+							<li>출장</li>
+							<li>반차</li>
+						</ul>
+					</div>
+				</div>
+			</div>
+			<div class="menu-list">
+				<a href="#" class="toggle-menu-list"><i class="fas fa-angle-down mr-2"></i><strong>근태관리</strong></a>
+				<ul class="menu-list-ul">
+					<li>
+						<a href="/ehr/content"><span>내 근태관리</span></a>
+					</li>
+					<li>
+						<a href="/ehr/vacation"><span>내 연차 내역</span></a>
+					</li>
+					<li>
+						<a href="/ehr/info"><span>내 인사 정보</span></a>
+					</li>
+					<li>
+						<a href="#"><span>부서 근태현황</span></a>
+					</li>
+					<li>
+						<a href="#"><span>타임라인</span></a>
+					</li>
+				</ul>
+			</div>
+		</div>
+	</div>
+</div>
+
+</body>
+<script type="text/javascript">
+$(function(){
+	fn_getFullTime();	 
+	fn_getTime();		
+	setInterval(fn_getFullTime, 1000);
+	setInterval(fn_getTime, 1000);
+	
+});
+// 현재 시각
+var now = new Date();
+// 년/월/일/요일
+var year = now.getFullYear();
+var month = now.getMonth() + 1;
+var date = now.getDate();
+var date1 = year + "." + month + "." + date;
+var dayInt = now.getDay();
+var Time = (now.getFullYear()) + "." +  (now.getMonth() + 1) + "." + (now.getDate());
+
+// 년/월/일/요일/시/분/초 구하기
+function fn_getFullTime(){
+	// 요일(숫자)을 요일(한글)로 바꾸기
+	var week = new Array("일요일", "월요일", "화요일", "수요일", "목요일", "금요일", "토요일");
+	var dayStr = week[dayInt]; // 일요일
+	var day = dayStr.substring(0, 1); // 일
+	
+	// 시/분/초
+	var hour = now.getHours();
+	var min = now.getMinutes();
+	var sec = now.getSeconds();
+	
+	if(hour < 10){
+		hour = "0" + hour;
+	}
+	if(min < 10){
+		min = "0" + min;	
+	}
+	if(sec < 10){
+		sec = "0" + sec;
+	}
+	
+	var currentTime = year + "년 " + month + "월 " + date + "일 " + "(" + day + ") ";
+	
+	$(".Today").text(currentTime);
+}
+
+
+
+$("#time").text(Time);
+$("#today").click(function() {
+	$("#time").text(Time);
+});
+</script>
+</html>

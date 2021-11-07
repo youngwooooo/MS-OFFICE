@@ -1,0 +1,296 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.common.mapper.CommonMapper">
+	<!-- 이름, 직위명, 사진, 소속 가져오기 -->
+	<select id="getProfile" parameterType="String" resultType="empVo">
+		SELECT
+			A.EMPNO AS empno
+			, A.DEPT_CODE AS SdeptCode
+			, A.OFCPS_CODE AS ofcpsCode
+			, A.NM AS NM
+			, B.NM AS deptNm
+			, D.NM AS ofcpsNm
+			, C.FILE_NM AS fileNm
+			, C.FILE_COURS AS fileCours
+			, C.FILE_NO AS fileNo
+		FROM
+			TB_EMPL A, TB_UNITY_CODE B, TB_FILE C, TB_UNITY_CODE D
+		WHERE A.DEPT_CODE = B.CODE(+) 
+		AND A.FILE_NO = C.FILE_NO(+)
+		AND A.OFCPS_CODE = D.CODE(+) 
+		AND A.EMPNO = #{empno}
+	</select>
+	
+	<!-- 최근에 작성된 미참여한 설문 2건 가져오기 -->
+	<select id="getSurveyList" parameterType="String" resultType="surveyVO">
+	<![CDATA[
+		SELECT ROWNUM RNUM, Z.*
+		FROM
+			(
+			SELECT
+				E.*
+			FROM
+				(
+				SELECT
+					A.QUSTNR_NO
+					, A.WRTER_EMPNO
+					, A.QUSTNR_SJ
+					, TO_CHAR(A.BEGIN_DE, 'YYYY-MM-dd') AS beginDe
+					, TO_CHAR(A.END_DE, 'YYYY-MM-dd') AS endDe
+					, A.OTHBC_AT
+					, A.GUIDANCE_SNTENC
+					, A.WRITING_DE
+					, A.UPDT_DE
+					, A.CODE
+					, B.TRGTER_EMPNO 
+					, NVL(C.RSPNS_AT, 'N') AS RSPNS_AT
+					, D.WRTERNM
+					, D.OFCPSNM
+				FROM
+					TB_QUSTNR A
+					, TB_QUSTNR_TRGTER B
+					, 
+					(
+						SELECT
+							QUSTNR_NO
+							, RSPNS_EMPNO
+							, MAX(RSPNS_AT) AS RSPNS_AT
+						FROM
+							TB_QESITM_RSPNS
+						GROUP BY
+							QUSTNR_NO
+							, RSPNS_EMPNO
+					) C
+					, 
+					(
+						SELECT A.EMPNO, A.NM AS WRTERNM, B.NM AS OFCPSNM 
+						FROM TB_EMPL A, TB_UNITY_CODE B
+						WHERE A.OFCPS_CODE = B.CODE
+					) D
+				WHERE
+					A.QUSTNR_NO = B.QUSTNR_NO
+					AND A.WRTER_EMPNO = D.EMPNO
+					AND B.QUSTNR_NO = C.QUSTNR_NO(+)
+					AND B.TRGTER_EMPNO = C.RSPNS_EMPNO(+)
+				) E
+		WHERE
+			E.TRGTER_EMPNO = #{empno}
+			AND E.RSPNS_AT = 'N'
+			AND E.CODE = 'QU01'
+		ORDER BY E.QUSTNR_NO DESC) Z
+		WHERE ROWNUM <= 2
+	]]>
+	</select>
+	
+	<!-- 공지사항 최신 5개 조회 -->
+	<select id="selectNoticeList" resultType="noticeVo">
+	<![CDATA[
+		SELECT ROWNUM RUNM, A.*
+		FROM
+		(SELECT
+			A.NOTICE_NO
+			, A.WRTER_EMPNO
+			, B.NM
+			, A.SJ
+			, A.CN
+			, A.WRITNG_TM
+			, A.IMPRTNC_AT
+			, A.UPDT_EMPNO
+			, A.UPDT_TM
+			, A.FILE_NO
+		FROM
+			TB_NOTICE_BBS A, TB_EMPL B
+		WHERE A.WRTER_EMPNO = B.EMPNO 
+		ORDER BY NOTICE_NO DESC) A
+		WHERE ROWNUM <= 5
+	]]>
+	</select>
+	
+	<!-- 최근 알림을 조회 (전자결재, 설문, todo, 공지사항) -->
+	<select id="selectNewList" parameterType="String" resultType="cmVO">
+		SELECT RS.NO
+			, RS.WRTEREMPNO
+			, RS.NM
+			, RS.OFCPSNM
+			, RS.SJ
+			, RS. WRTINGTM
+			, RS.FILECOURS
+			, RS.FILENM
+			, RS.TYPE
+		FROM
+		(
+		(SELECT
+			A.NOTICE_NO AS no
+			, A.WRTER_EMPNO AS wrterEmpno
+			, B.NM AS nm
+			, C.NM AS ofcpsNm
+			, A.SJ AS sj
+			, TO_CHAR(A.WRITNG_TM, 'YYYY-MM-dd HH24:MI') AS wrtingTm
+			, D.FILE_COURS AS fileCours
+			, D.FILE_NM AS fileNm
+			, (SELECT 'NOTICE' AS NOTICE FROM DUAL) AS TYPE
+		FROM
+			TB_NOTICE_BBS A, TB_EMPL B, TB_UNITY_CODE C, TB_FILE D
+		WHERE A.WRTER_EMPNO = B.EMPNO
+		AND B.OFCPS_CODE = C.CODE
+		AND B.FILE_NO = D.FILE_NO) 
+		UNION
+		(SELECT
+			A.QUSTNR_NO AS no
+			, A.WRTER_EMPNO AS wrterEmpno
+			, C.NM AS nm
+			, D.NM AS ofcpsNm
+			, A.QUSTNR_SJ AS sj
+			, TO_CHAR(A.WRITING_DE, 'YYYY-MM-dd HH24:MI') AS wrtingTm
+			, E.FILE_COURS AS fileCours 
+			, E.FILE_NM AS fileNm
+			, (SELECT 'QUSTNR' AS QUSTNR FROM DUAL) AS TYPE
+		FROM
+			TB_QUSTNR A, TB_QUSTNR_TRGTER B, TB_EMPL C, TB_UNITY_CODE D, TB_FILE E
+		WHERE A.QUSTNR_NO = B.QUSTNR_NO
+		AND A.WRTER_EMPNO = C.EMPNO
+		AND C.OFCPS_CODE = D.CODE 
+		AND C.FILE_NO = E.FILE_NO 
+		AND B.TRGTER_EMPNO = #{empno})
+		UNION 
+		(SELECT
+			A.BOARD_NO AS no
+			, A.ESTER_EMPNO AS wrterEmpno
+			, C.NM AS nm
+			, D.NM AS ofcpsNm
+			, A.BOARD_NM AS sj
+			, TO_CHAR(A.WRTING_DE, 'YYYY-MM-dd HH24:MI') AS wrterTm
+			, E.FILE_COURS AS fileCours
+			, E.FILE_NM AS fileNm
+			, (SELECT 'TODO' AS TODO FROM DUAL) AS TYPE
+		FROM
+			TB_TODO_BOARD A, TB_BOARD_COCNR B, TB_EMPL C, TB_UNITY_CODE D, TB_FILE E
+		WHERE A.ESTER_EMPNO = B.COCNR_EMPNO 
+		AND A.ESTER_EMPNO = C.EMPNO
+		AND C.OFCPS_CODE = D.CODE 
+		AND C.FILE_NO = E.FILE_NO 
+		AND B.COCNR_EMPNO = #{empno})
+		UNION 
+		(SELECT
+			R.DRFT_NO AS no
+			, R.EMPNO AS wrterEmpno
+			, R.NM AS nm
+			, B.NM AS ofcpsNm
+			, R.SJ AS sj
+			, TO_CHAR(R.WRITNG_TM, 'YYYY-MM-dd HH24:MI') AS wrterTm
+			, C.FILE_COURS AS fileCours
+			, C.FILE_NM AS fileNm
+			, (SELECT 'DRFT' AS DRFT FROM DUAL) AS TYPE
+		FROM
+			(select 
+			    ROW_NUMBER() OVER(ORDER BY drft_no desc) RNUM
+			    ,a.drft_no
+			    ,a.empno
+			    ,d.nm
+			    ,a.sanctn_no
+			    ,a.form_no
+			    ,E.Form_Nm
+			    ,a.drft_progrs_code
+			    ,f.nm drftProgrsNm
+			    ,a.scrty_grad_code
+			    ,a.writng_tm
+			    ,a.updt_tm
+			    ,a.updt_empno
+			    ,a.cn
+			    ,a.sj
+			    ,a.file_no
+			    ,a.dept_code
+			    ,b.nm deptNm
+			    ,a.co_dept_code
+			    ,c.nm coDeptNm
+			    ,a.complete_tm
+			from
+			    (SELECT
+			        ROW_NUMBER() OVER(partition by sanctn_no order by ordr asc) rwnum
+			       ,sanctn_no
+			       ,ordr
+			       ,sanctner_empno
+			       ,sanc_code
+			       ,return_cn
+			       ,sanctn_tm
+			    FROM
+			        tb_sanctn_detail
+			    where sanc_code is null
+			    order by Sanctn_No) R, tb_drft a, Tb_Unity_Code b, Tb_Unity_Code c, tb_empl d, tb_form e, Tb_Unity_Code f
+			where rwnum = 1
+			and R.sanctner_empno = #{empno}
+			and b.Code = a.Dept_Code
+			and c.code = a.Co_Dept_Code
+			and a.empno = d.empno
+			and a.Form_No = e.Form_No
+			and a.Drft_Progrs_Code = f.code
+			and a.Sanctn_No = R.Sanctn_No
+			order by a.drft_no desc) R
+			, TB_EMPL A, TB_UNITY_CODE B, TB_FILE C
+		WHERE R.EMPNO = A.EMPNO
+		AND A.OFCPS_CODE = B.CODE
+		AND A.FILE_NO = C.FILE_NO)
+		) RS
+		WHERE RS.WRTINGTM BETWEEN TO_CHAR(SYSDATE-7, 'YYYY-MM-dd HH24:MI') AND TO_CHAR(SYSDATE, 'YYYY-MM-dd HH24:MI')
+		ORDER BY RS.WRTINGTM DESC
+	</select>
+	
+	<!-- 마이 페이지 정보 조회 -->
+	<select id="getEmpInfo" parameterType="String" resultType="empVo">
+		SELECT
+			A.EMPNO AS empno
+			, A.DEPT_CODE AS deptCode
+			, C.NM AS deptNm
+			, A.RSPOFC_CODE AS rspofCcode 
+			, D.NM AS rspofcNm
+			, A.OFCPS_CODE AS ofcpsCode 
+			, E.NM AS ofcpsNm
+			, A.NM AS nm
+			, A.EMAIL AS email
+			, A.TELNO AS telno
+			, A.ZIP AS zip
+			, A.ADRES AS adres
+			, A.ADRES_DETAIL AS adresDetail
+			, TO_CHAR(A.ECNY_DE, 'YYYY-MM-dd') AS ecnyDe
+			, A.FILE_NO AS beforeFileNo
+			, A.FILE_NO AS fileNo
+			, B.FILE_NM AS fileNm
+			, B.FILE_COURS AS fileCours
+			, B.FILE_ORGINL_NM AS fileOrginlNm
+		FROM
+			TB_EMPL A, TB_FILE B, TB_UNITY_CODE C, TB_UNITY_CODE D, TB_UNITY_CODE E
+		WHERE A.FILE_NO = B.FILE_NO(+)
+		AND A.DEPT_CODE = C.CODE(+)
+		AND A.RSPOFC_CODE = D.CODE(+) 
+		AND OFCPS_CODE = E.CODE(+)
+		AND A.EMPNO = #{empno}
+	</select>
+	
+	<!-- 마이페이지 수정(사진 제외) -->
+	<update id="eidtEmpInfo" parameterType="empVo">
+		UPDATE
+			TB_EMPL
+		SET
+			NM = #{nm}
+			, TELNO = #{telno}
+		WHERE
+			EMPNO = #{empno}
+	</update>
+	
+	<!-- 마이페이지 수정(사진 포함) -->
+	<update id="editEmpInfoAndProfile" parameterType="empVo">
+		UPDATE
+			TB_EMPL
+		SET
+			NM = #{nm}
+			, TELNO = #{telno}
+			, FILE_NO = #{fileNo}
+		WHERE
+			EMPNO = #{empno}
+	</update>
+	
+</mapper>
+
+
+
+

@@ -1,0 +1,32 @@
+@charset "UTF-8";
+/* 공통 css */
+.left-menu-list {position: absolute; border-right: 1px solid #dee2e6; height: 100%; width: 260px; float: left;}
+.lefr-menu-list-content{margin-left: 260px; padding-left: 10px; padding-right: 10px;}
+.left-menu-list a {color : black;}
+.left-menu-list a:hover {color: black;}
+
+.menu-name {padding: 20px 20px 10px 20px;}
+.menu-create {padding: 0px 20px 20px 20px;}
+.menu-list {padding: 0px 20px 20px 20px;}
+#btnCreate {width: 100%; height: 60px; border-color: black; background-color: white;}
+#btnCreate:hover {box-shadow: 0px 5px 15px #dddddd;}
+#btnCreate > span {font-size: 1rem;}
+
+.menu-list .menu-list-ul {list-style: none; padding-left: 0px; margin-bottom: 0px;}
+.menu-list li {padding-left: 40px; margin-top: 3px;}
+.menu-list li:hover {background-color: #f7f8f9;}
+.menu-list span {font-size: 0.9rem;}
+
+/* 페이지 내의 검색창  css*/
+.listSearch {text-align: center; padding: 20px 10px 20px 10px}
+.listSearch .input-group.searchSelect {display: inline-flex; width: 110px;}
+.listSearch .input-group.searchKeyword{display: inline-flex; width: 300px;}
+.listSearch select, .listSearch input{font-size: 0.8rem;}
+
+/* 페이지 내의 페이징 css*/
+.Paging {text-align: center; padding: 10px;}
+.Paging ul {list-style: none; padding: 0px; margin: 0px;}
+.Paging ul li {display: inline;}
+.Paging ul li a {color: black; border: 1px solid white;  padding: 3px 10px 3px 10px;}
+.Paging ul li a:hover {border-color: #888;}
+.Paging ul li i {font-size: 0.8rem; color: #888;}

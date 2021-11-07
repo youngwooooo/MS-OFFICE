@@ -1,0 +1,165 @@
+package kr.or.ddit.todo.controller;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+
+import kr.or.ddit.todo.service.TodoService;
+import kr.or.ddit.todo.vo.TodoVO;
+import lombok.extern.slf4j.Slf4j;
+
+@RequestMapping("/todo")
+@Slf4j
+@Controller
+public class TodoController {
+	private static final Logger logger = LoggerFactory.getLogger(TodoController.class);
+	
+	@Autowired
+	TodoService ts;
+	
+	// todo 홈 내 보드 출력
+	@GetMapping("/home")
+	public String todoHome(Model model) {
+		List<TodoVO> boardAllList = ts.boardAllList();
+		List<TodoVO> boardCocnrAllList = ts.boardCocnrAllList();
+		logger.info("boardAllList : " + boardAllList);
+		logger.info("boardCocnrAllList : " + boardCocnrAllList);
+		
+		model.addAttribute("boardAllList", boardAllList);
+		model.addAttribute("boardCocnrAllList", boardCocnrAllList);
+		
+		return "todo/todoHome";
+	}
+	
+	// 보드 만들기
+	@PostMapping("/createBoard")
+	public String createBoard(@ModelAttribute TodoVO todoVO) {
+		logger.info(todoVO.toString());
+		ts.createBoard(todoVO);
+		
+		return "redirect:/todo/home";
+	}
+	
+	// 즐겨찾기 여부 업데이트
+	@ResponseBody
+	@PostMapping("/updateBkmk")
+	public String[] updateBkmk(@RequestParam Map<String, Object> map) {
+		String[] result = new String[2];
+		if(map.get("bkmk").equals("N")) {
+			map.put("bkmk", "Y");
+			int cnt = ts.updateBkmk(map);
+			if(cnt > 0) {
+				result[0] = (String) map.get("boardNo");
+				result[1] = (String) map.get("bkmk");
+			}
+			
+		}else if(map.get("bkmk").equals("Y")) {
+			map.put("bkmk", "N");
+			int cnt = ts.updateBkmk(map);
+			if(cnt > 0) {
+				result[0] = (String) map.get("boardNo");
+				result[1] = (String) map.get("bkmk");
+			}
+		}
+		
+		return result;
+	}
+	
+	// 보드 상세 조회
+	@GetMapping("/board/{boardNo}")
+	public String todoDetail(@PathVariable("boardNo") int boardNo, Model model) {
+		TodoVO detailBoard = ts.detailBoard(boardNo);
+		List<TodoVO> detailBoardCocnr = ts.detailBoardCocnr(boardNo);
+		
+		model.addAttribute("detailBoard", detailBoard);
+		model.addAttribute("detailBoardCocnr", detailBoardCocnr);
+		
+		return "todo/todoDetail";
+	}
+	
+	// 카드 메뉴 생성 ajax
+	@ResponseBody
+	@PostMapping("/board/createCardMenu")
+	public int createCardMenu(@ModelAttribute TodoVO todoVO){
+		logger.info("카드 메뉴 생성 파라미터 : " + todoVO);
+		return ts.createCardMenu(todoVO);
+	}
+	
+	// 생성된 카드 메뉴 조회
+	@ResponseBody
+	@PostMapping("/board/createdCardMenuInfo")
+	public TodoVO createdCardMenuInfo(@RequestParam int cardMenuNo) {
+		return ts.createdCardMenuInfo(cardMenuNo);
+	}
+	
+	
+	// 전체 카드 메뉴 조회
+	@ResponseBody
+	@GetMapping("/board/cardMenuList")
+	public List<TodoVO> cardMenuList(){
+		return ts.cardMenuList();
+	}
+	
+	// 카드 생성
+	@ResponseBody
+	@PostMapping("/board/createCard")
+	public int createCard(@ModelAttribute TodoVO todoVO) {
+		logger.info("카드 생성 : " + todoVO);
+		return ts.createCard(todoVO);
+	}
+	
+	// 전체 카드 조회
+	@ResponseBody
+	@GetMapping("/board/cardList")
+	public List<TodoVO> cardList(){
+		return ts.cardList();
+	}
+	
+	// 생성된 카드 조회
+	@ResponseBody
+	@PostMapping("/board/createdCardInfo")
+	public TodoVO createdCardInfo(@RequestParam int cardNo) {
+		return ts.createdCardInfo(cardNo);
+	}
+		
+		
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+}

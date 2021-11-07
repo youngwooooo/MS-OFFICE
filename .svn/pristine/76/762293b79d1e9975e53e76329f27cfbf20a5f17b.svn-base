@@ -1,0 +1,941 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.ehr.mapper.EhrMapper">
+
+	<select id="sumWeekWorkTime" parameterType="hashMap" resultType="kr.or.ddit.ehr.vo.WeekWTVO">
+		select sum(WORK_ACCMLT_TM) sum_time
+		from tb_work
+		where tm between TO_DATE(#{mon}, 'YYYY-MM-DD') and TO_DATE(#{sun}, 'YYYY-MM-DD')
+		and empno = #{empno}
+	
+	</select>
+
+	<!-- collection : parameterType으로 넘어온 list item : collection을 사용할 변수 seperator 
+		: 반복 되는 요소에 추가할 문자열 -->
+	<insert id="insert" parameterType="ehrVo">
+		INSERT INTO TB_WORK(EMPNO, TM,
+		RCORD_CODE)
+		VALUES(
+		#{empNo}
+		, (select To_date((TO_CHAR(SYSDATE,
+		'YYYY-MM-DD') || #{tm3}),
+		'YYYY-MM-DD HH24:MI:SS') TODAY0
+		from dual)
+		,
+		#{rcordCode}
+		)
+	</insert>
+
+	<insert id="total" parameterType="ehrVo">
+		INSERT INTO TB_WORK(EMPNO, TM,
+		RCORD_CODE, WORK_ACCMLT_TM)
+		VALUES(
+		#{empNo}
+		, TRUNC(SYSDATE) + 0.99999
+		, 'D103'
+		,
+		FN_GET_ELAPSEDMSEC(#{empNo})
+		)
+	</insert>
+
+	<select id="select" parameterType="ehrVo" resultType="ehrVo">
+		SELECT
+		empno emp_no,
+		tm,
+		rcord_code,
+		work_accmlt_tm
+		FROM
+		tb_work
+		WHERE TM >
+		TO_DATE(TO_CHAR(SYSDATE, 'YYYY-MM-DD'), 'YYYY-MM-DD HH24:MI:SS')
+		AND
+		empno = #{empNo}
+		order by tm asc
+	</select>
+
+	<select id="selectList" parameterType="ehrVo" resultType="ehrVo">
+		SELECT
+		empno emp_no,
+		tm,
+		rcord_code,
+		work_accmlt_tm
+		FROM
+		tb_work
+		WHERE empno =
+		#{empNo}
+		AND RCORD_CODE = 'D101'
+		order by tm asc
+	</select>
+
+	<select id="selectList2" parameterType="ehrVo"
+		resultType="ehrVo">
+		SELECT
+		empno emp_no,
+		tm,
+		rcord_code,
+		work_accmlt_tm
+		FROM
+		tb_work
+		WHERE empno = #{empNo}
+		AND RCORD_CODE = 'D102'
+		order by tm asc
+	</select>
+
+	<select id="selectList3" parameterType="ehrVo"
+		resultType="ehrVo">
+		SELECT
+		empno emp_no,
+		tm,
+		rcord_code,
+		WORK_ACCMLT_TM
+		FROM
+		tb_work
+		WHERE empno = #{empNo}
+		AND RCORD_CODE = 'D103'
+		AND WORK_ACCMLT_TM > 0
+		order by tm asc
+	</select>
+
+	<select id="selectList4" parameterType="ehrVo"
+		resultType="ehrVo">
+	<![CDATA[
+	select NVL(TRUNC(sum(work_accmlt_tm)), 0) tmh, 
+	NVL(TRUNC((sum(work_accmlt_tm) - TRUNC(sum(work_accmlt_tm)))*60), 0) tmm,
+	sum(work_accmlt_tm)*3600 - TRUNC(sum(work_accmlt_tm))*3600 - TRUNC((sum(work_accmlt_tm) - TRUNC(sum(work_accmlt_tm)))*60)*60 tms
+	from
+	(SELECT
+		to_char(a.tm, 'yyyy-mm-dd') as days, 
+		a.empno, 
+		to_char(a.tm, 'HH24:MI') st_time, 
+	(SELECT
+		to_char(b.tm, 'HH24:MI') et_time
+		FROM
+		tb_work b
+		WHERE 1=1
+		AND b.empno = a.empno
+		AND b.RCORD_CODE = 'D102'
+		and to_char(a.tm, 'yyyy-mm-dd') = to_char(b.tm, 'yyyy-mm-dd') ) as et_time
+		, 
+	TRUNC((TO_DATE(
+	(SELECT
+		to_char(b.tm, 'HH24:MI') et_time
+		FROM
+		tb_work b
+		WHERE 1=1
+		AND b.empno = a.empno
+		AND b.RCORD_CODE = 'D102'
+		and to_char(a.tm, 'yyyy-mm-dd') = to_char(b.tm, 'yyyy-mm-dd') ), 
+		'HH24:MI') - TO_DATE(to_char(a.tm, 'HH24:MI'), 'HH24:MI')) * 24, 2) as
+		work_accmlt_tm, 
+	
+		a.rcord_code
+	
+		FROM
+		tb_work a
+		WHERE 1=1
+		AND empno = #{empNo}
+		AND a.RCORD_CODE = 'D101'
+		AND TO_CHAR(TRUNC(SYSDATE, 'D')+1, 'YYYY/MM/DD') < TM
+		AND TM <= TO_CHAR(TRUNC(SYSDATE, 'D')+7, 'YYYY/MM/DD'))
+	]]>
+	</select>
+	<select id="infoselect" parameterType="infoVo"
+		resultType="infoVo">
+		select b.EMPNO as empno, DEPT_CODE, RSPOFC_CODE,
+		OFCPS_CODE, SUPRR_EMPNO, PASSWORD, b.NM, EMAIL, TELNO, ZIP, ADRES,
+		ADRES_DETAIL, ECNY_DE, RETIRE_DE, RESVE_CONFM_AUTHOR, FILE_NM,
+		FILE_COURS, FILE_ORGINL_NM, FILE_NO
+		, ENTRY, DUTY, OCCUPATION,
+		JOBGROUP, RECRUITMENTDIV, EMPLOYEEDIV, PAYDIV, RECOMMENDER, STATE,
+		BIRTHDAY, LUNARCALENDAR, GENDER, MARRY, OBSTACLE, VETERAN, HOBBY,
+		SPECIALTY, FAX, EMPLOYMENT, ADDR, ADDRNO, VETERANNO, VETERANFAMLIY,
+		VETERANDIV, OBSTACLENO, OBSTACLEDIV, OBSTACLEGRADE, OBSTACLERECDIV,
+		ACCOUNT, BANK, ACCOUNTHOLDER, NOTE, ACCOUNTNUMBER, STARTDATE, ENDDATE
+		, CODE, CL_CODE, CL, c.NM as position, nm2
+		from tb_info a, TB_EMPL b,
+		TB_UNITY_CODE c
+		where a.empno = b.empno
+		and RSPOFC_CODE = c.CODE
+		and
+		a.empno = #{empno}
+	</select>
+
+	<update id="infoupdate" parameterType="infoVo">
+		UPDATE tb_info
+		SET
+		ENTRY =
+		#{entry},
+		DUTY = #{duty},
+		OCCUPATION = #{occupation},
+		JOBGROUP =
+		#{jobgroup},
+		RECRUITMENTDIV = #{recruitmentdiv},
+		EMPLOYEEDIV =
+		#{employeediv},
+		PAYDIV = #{paydiv},
+		RECOMMENDER = #{recommender},
+		STATE =
+		#{state},
+		BIRTHDAY=TO_DATE(TO_CHAR(#{birthday}), 'YYYY-MM-DD'),
+		LUNARCALENDAR = #{lunarcalendar},
+		GENDER = #{gender},
+		MARRY = #{marry},
+		OBSTACLE = #{obstacle},
+		VETERAN = #{veteran}
+		where EMPNO = #{empno}
+	</update>
+	<update id="bodyupdate" parameterType="infoVo">
+		UPDATE tb_info
+		SET
+		HOBBY =
+		#{hobby},
+		SPECIALTY = #{specialty},
+		FAX = #{fax},
+		EMPLOYMENT =
+		#{employment},
+		ADDR = #{addr},
+		ADDRNO = #{addrno},
+		VETERANNO =
+		#{veteranno},
+		VETERANFAMLIY = #{veteranfamliy},
+		VETERANDIV =
+		#{veterandiv},
+		OBSTACLENO = #{obstacleno},
+		OBSTACLEDIV = #{obstaclediv},
+		OBSTACLEGRADE = #{obstaclegrade},
+		OBSTACLERECDIV = #{obstaclerecdiv},
+		ACCOUNT = #{account},
+		BANK = #{bank},
+		ACCOUNTHOLDER = #{accountholder},
+		NOTE = #{note},
+		ACCOUNTNUMBER = #{accountnumber}
+		where EMPNO = #{empno}
+	</update>
+
+	<!-- select 시작 -->
+	<select id="degree" parameterType="info2Vo" resultType="info2Vo">
+		select
+		DEGREENO degreeno
+		, DIVISION division
+		, SCHOOL school
+		, ENROLL enroll
+		,
+		GRADUATED graduated
+		, MAJOR major
+		, MINOR minor
+		, RM degreerm
+		, EMPNO
+		from
+		DEGREE
+		where empno = #{empno}
+		order by degreeno asc
+	</select>
+	<select id="family" parameterType="info2Vo" resultType="info2Vo">
+		select
+		FAMILYNO familyno
+		, FAMILYSNAME familysname
+		, FAMILYSRELATIONSHIP
+		familysrelationship
+		, GENDER gender
+		, BIRTHDAY birthday
+		, EDUCATION
+		education
+		, JOB job
+		, RM familyrm
+		, EMPNO
+		from FAMILY
+		where empno =
+		#{empno}
+		order by familyno asc
+	</select>
+	<select id="businesstrip" parameterType="info2Vo"
+		resultType="info2Vo">
+		select
+		BTNO btno
+		, TERMS terms
+		, TERME terme
+		, COUNTRY country
+		, CHULJANGJI
+		chuljangji
+		, DESTINATION destination
+		, EMPNO
+		from
+		BUSINESSTRIP
+		where empno
+		= #{empno}
+		order by btno asc
+	</select>
+	<select id="career" parameterType="info2Vo" resultType="info2Vo">
+		select
+		CAREERNO careerno
+		, STARTDATE careerstartdate
+		, ENDDATE careerenddate
+		,
+		WORKPLACE workplace
+		, JOBPOSITION jobposition
+		, RESPONSIBILITIES
+		responsibilities
+		, CSY csy
+		, RETIREMENT retirement
+		, EMPNO
+		from CAREER
+		where empno = #{empno}
+		order by careerno asc
+	</select>
+	<select id="education" parameterType="info2Vo"
+		resultType="info2Vo">
+		select
+		EDUCATIONNO educationno
+		, EDUCATIONPROCESS
+		educationprocess
+		, EDUCATIONTYPE
+		educationtype
+		, STARTDATE startdate
+		,
+		ENDDATE enddate
+		,
+		EDUCATIONINSTITUTIONS educationinstitutions
+		, EMPNO
+		from EDUCATION
+		where
+		empno = #{empno}
+		order by educationno asc
+	</select>
+	<select id="issued" parameterType="info2Vo" resultType="info2Vo">
+		select
+		ISSUEDNO issuedno
+		, ISSUEDDATE issueddate
+		, DIVISION issueddivision
+		,
+		ISSUEDNAME issuedname
+		, EMPLOYEEDIV employeediv
+		, TEAM team
+		, PAYSTEP
+		paystep
+		, POSITION position
+		, RESPONSIBILITIES issuedresponsibilities
+		,
+		EMPNO
+		from ISSUED
+		where empno = #{empno}
+		order by issuedno asc
+	</select>
+	<select id="jobresponsibilities" parameterType="info2Vo"
+		resultType="info2Vo">
+		select
+		JRNO jrno
+		, JOPGROUP jopgroup
+		, OCCUPATION occupation
+		,
+		ENTRY entry
+		,
+		STARTDATE jrstartdate
+		, ENDDATE jrenddate
+		, IMPORTANCE
+		importance
+		,
+		RESPONSIBILITIES jrresponsibilities
+		, EMPNO
+		from
+		JOBRESPONSIBILITIES
+		where empno = #{empno}
+		order by jrno asc
+	</select>
+	<select id="languagestudy" parameterType="info2Vo"
+		resultType="info2Vo">
+		select
+		LANGUAGESTUDYNO languagestudyno
+		, DIVISION
+		languagestudydivision
+		, LANGUAGESTUDYNM
+		languagestudynm
+		, EVALUATIODATE
+		evaluatiodate
+		, EI ei
+		, SCORE score
+		,
+		GRADE languagestudygrade
+		, RM
+		languagestudyrm
+		, EMPNO
+		from LANGUAGESTUDY
+		where empno = #{empno}
+		order by
+		languagestudyno asc
+	</select>
+	<select id="militaryservice" parameterType="info2Vo"
+		resultType="info2Vo">
+		select
+		MILITARYNO militaryno
+		, WARLOAD warload
+		, GRADE grade
+		,
+		DOGNO dogno
+		, DISCHARGEDIV
+		dischargediv
+		, ENLISTMENT enlistment
+		,
+		DISCHARGE discharge
+		, RM
+		militaryrm
+		, EMPNO
+		from MILITARYSERVICE
+		where
+		empno = #{empno}
+		order by
+		militaryno asc
+	</select>
+	<select id="performanceevaluation" parameterType="info2Vo"
+		resultType="info2Vo">
+		select
+		PENO peno
+		, EVALUATIONYEAR evaluationyear
+		, ABILITY
+		ability
+		, ACHIEVEMENT
+		achievement
+		, RATER rater
+		, ORGANIZATION
+		organization
+		, RM perm
+		, EMPNO
+		from PERFORMANCEEVALUATION
+		where empno =
+		#{empno}
+		order by peno asc
+	</select>
+	<select id="rewardandpunishment" parameterType="info2Vo"
+		resultType="info2Vo">
+		select
+		RAPNO rapno
+		, DIVISION rapdivision
+		, RAPDATE rapdate
+		,
+		CONTENT content
+		, REASON reason
+		, RM raprm
+		, EMPNO
+		from
+		REWARDANDPUNISHMENT
+		where empno = #{empno}
+		order by rapno asc
+	</select>
+	<select id="qualification" parameterType="info2Vo"
+		resultType="info2Vo">
+		select
+		QUALIFICATIONNO qualificationno
+		, DIVISION
+		qualificationdivision
+		, QUALIFICATIONNM qualificationnm
+		,
+		QUALIFICATIONNUM qualificationnum
+		, QUALIFICATIONGRADE
+		qualificationgrade
+		, INSTITUTIONSNM institutionsnm
+		, ACQUISITIONDATE
+		acquisitiondate
+		, STOPDATE stopdate
+		, EMPNO
+		from QUALIFICATION
+		where empno
+		= #{empno}
+		order by qualificationno asc
+	</select>
+	<!-- select 종료 -->
+
+	<!-- insert 시작 -->
+	<insert id="degreeinsert" parameterType="info2Vo">
+		<selectKey order="BEFORE" keyProperty="degreeno"
+			resultType="int">
+			SELECT NVL(MAX(degreeno), 0) + 1 FROM DEGREE
+			where
+			empno=#{empno}
+		</selectKey>
+		INSERT INTO DEGREE(DEGREENO, DIVISION, SCHOOL, ENROLL, GRADUATED,
+		MAJOR, MINOR, RM, EMPNO)
+		VALUES(#{degreeno}, #{division1}, #{school1},
+		TO_DATE(TO_CHAR(#{enroll1})), TO_DATE(TO_CHAR(#{graduated1})),
+		#{major1}, #{minor1}, #{degreerm1}, #{empno})
+	</insert>
+
+	<insert id="familyinsert" parameterType="info2Vo">
+		<selectKey order="BEFORE" keyProperty="familyno"
+			resultType="int">
+			SELECT NVL(MAX(familyno), 0) + 1 FROM FAMILY
+			where
+			empno=#{empno}
+		</selectKey>
+		INSERT INTO FAMILY(FAMILYNO, FAMILYSNAME, FAMILYSRELATIONSHIP, GENDER,
+		BIRTHDAY, EDUCATION, JOB, RM, EMPNO)
+		VALUES(#{familyno},
+		#{familysname1}, #{familysrelationship1}, #{gender1},
+		TO_DATE(TO_CHAR(#{birthday1})), #{education1}, #{job1}, #{familyrm1},
+		#{empno})
+	</insert>
+
+	<insert id="btinsert" parameterType="info2Vo">
+		<selectKey order="BEFORE" keyProperty="btno"
+			resultType="int">
+			SELECT NVL(MAX(btno), 0) + 1 FROM BUSINESSTRIP
+			where
+			empno=#{empno}
+		</selectKey>
+		INSERT INTO BUSINESSTRIP(BTNO, TERMS, TERME, COUNTRY, CHULJANGJI,
+		DESTINATION, EMPNO)
+		VALUES(#{btno}, TO_DATE(TO_CHAR(#{terms1})),
+		TO_DATE(TO_CHAR(#{terme1})), #{country1}, #{chuljangji1},
+		#{destination1}, #{empno})
+	</insert>
+
+	<insert id="careerinsert" parameterType="info2Vo">
+		<selectKey order="BEFORE" keyProperty="careerno"
+			resultType="int">
+			SELECT NVL(MAX(careerno), 0) + 1 FROM CAREER
+			where
+			empno=#{empno}
+		</selectKey>
+		INSERT INTO CAREER(CAREERNO, STARTDATE , ENDDATE , WORKPLACE ,
+		JOBPOSITION , RESPONSIBILITIES , CSY , RETIREMENT , EMPNO)
+		VALUES(#{careerno}, TO_DATE(TO_CHAR(#{careerstartdate1})),
+		TO_DATE(TO_CHAR(#{careerenddate1})), #{workplace1}, #{jobposition1},
+		#{responsibilities1}, #{csy1}, #{retirement1}, #{empno})
+	</insert>
+
+	<insert id="educationinsert" parameterType="info2Vo">
+		<selectKey order="BEFORE" keyProperty="educationno"
+			resultType="int">
+			SELECT NVL(MAX(educationno), 0) + 1 FROM EDUCATION
+			where
+			empno=#{empno}
+		</selectKey>
+		INSERT INTO EDUCATION(EDUCATIONNO , EDUCATIONPROCESS, EDUCATIONTYPE,
+		STARTDATE, ENDDATE, EDUCATIONINSTITUTIONS, EMPNO)
+		VALUES(#{educationno}, #{educationprocess1}, #{educationtype1},
+		TO_DATE(TO_CHAR(#{startdate1})), TO_DATE(TO_CHAR(#{enddate1})),
+		#{educationinstitutions1}, #{empno})
+	</insert>
+
+	<insert id="issuedinsert" parameterType="info2Vo">
+		<selectKey order="BEFORE" keyProperty="issuedno"
+			resultType="int">
+			SELECT NVL(MAX(issuedno), 0) + 1 FROM ISSUED
+			where
+			empno=#{empno}
+		</selectKey>
+		INSERT INTO ISSUED(ISSUEDNO, ISSUEDDATE, DIVISION, ISSUEDNAME,
+		EMPLOYEEDIV, TEAM, PAYSTEP, POSITION, RESPONSIBILITIES , EMPNO)
+		VALUES(#{issuedno}, TO_DATE(TO_CHAR(#{issueddate1})),
+		#{issueddivision1}, #{issuedname1}, #{employeediv1}, #{team1},
+		#{paystep1}, #{position1}, #{issuedresponsibilities1}, #{empno})
+	</insert>
+
+	<insert id="jrinsert" parameterType="info2Vo">
+		<selectKey order="BEFORE" keyProperty="jrno"
+			resultType="int">
+			SELECT NVL(MAX(jrno), 0) + 1 FROM JOBRESPONSIBILITIES
+			where empno=#{empno}
+		</selectKey>
+		INSERT INTO JOBRESPONSIBILITIES(JRNO, JOPGROUP, OCCUPATION, ENTRY,
+		STARTDATE, ENDDATE, IMPORTANCE, RESPONSIBILITIES, EMPNO)
+		VALUES(#{jrno}, #{jopgroup1}, #{occupation1}, #{entry1},
+		TO_DATE(TO_CHAR(#{jrstartdate1})), TO_DATE(TO_CHAR(#{jrenddate1})),
+		#{importance1}, #{jrresponsibilities1}, #{empno})
+	</insert>
+
+	<insert id="languagestudyinsert" parameterType="info2Vo">
+		<selectKey order="BEFORE" keyProperty="languagestudyno"
+			resultType="int">
+			SELECT NVL(MAX(languagestudyno), 0) + 1 FROM LANGUAGESTUDY
+			where empno=#{empno}
+		</selectKey>
+		INSERT INTO LANGUAGESTUDY(LANGUAGESTUDYNO, DIVISION, LANGUAGESTUDYNM,
+		EVALUATIODATE, EI, SCORE, GRADE, RM, EMPNO)
+		VALUES(#{languagestudyno},
+		#{languagestudydivision1}, #{languagestudynm1},
+		TO_DATE(TO_CHAR(#{evaluatiodate1})), #{ei1}, #{score1},
+		#{languagestudygrade1},#{languagestudyrm1}, #{empno})
+	</insert>
+
+	<insert id="militaryinsert" parameterType="info2Vo">
+		<selectKey order="BEFORE" keyProperty="militaryno"
+			resultType="int">
+			SELECT NVL(MAX(militaryno), 0) + 1 FROM MILITARYSERVICE
+			where empno=#{empno}
+		</selectKey>
+		INSERT INTO MILITARYSERVICE(MILITARYNO, WARLOAD, GRADE, DOGNO,
+		DISCHARGEDIV, ENLISTMENT, DISCHARGE, RM, EMPNO)
+		VALUES(#{militaryno},
+		#{warload1}, #{grade1}, #{dogno1}, #{dischargediv1},
+		TO_DATE(TO_CHAR(#{enlistment1})), TO_DATE(TO_CHAR(#{discharge1})),
+		#{militaryrm1}, #{empno})
+	</insert>
+
+	<insert id="peinsert" parameterType="info2Vo">
+		<selectKey order="BEFORE" keyProperty="peno"
+			resultType="int">
+			SELECT NVL(MAX(peno), 0) + 1 FROM PERFORMANCEEVALUATION
+			where empno=#{empno}
+		</selectKey>
+		INSERT INTO PERFORMANCEEVALUATION(PENO, EVALUATIONYEAR, ABILITY,
+		ACHIEVEMENT, RATER, ORGANIZATION, RM, EMPNO)
+		VALUES(#{peno},
+		TO_DATE(TO_CHAR(#{evaluationyear1})), #{ability1}, #{achievement1},
+		#{rater1}, #{organization1}, #{perm1}, #{empno})
+	</insert>
+
+	<insert id="rapinsert" parameterType="info2Vo">
+		<selectKey order="BEFORE" keyProperty="rapno"
+			resultType="int">
+			SELECT NVL(MAX(rapno), 0) + 1 FROM REWARDANDPUNISHMENT
+			where empno=#{empno}
+		</selectKey>
+		INSERT INTO REWARDANDPUNISHMENT(RAPNO, DIVISION, RAPDATE, CONTENT,
+		REASON, RM, EMPNO)
+		VALUES(#{rapno}, #{rapdivision1},
+		TO_DATE(TO_CHAR(#{rapdate1})), #{content1}, #{reason1}, #{raprm1},
+		#{empno})
+	</insert>
+
+	<insert id="qualificationinsert" parameterType="info2Vo">
+		<selectKey order="BEFORE" keyProperty="qualificationno"
+			resultType="int">
+			SELECT NVL(MAX(qualificationno), 0) + 1 FROM QUALIFICATION
+			where empno=#{empno}
+		</selectKey>
+		INSERT INTO QUALIFICATION(QUALIFICATIONNO, DIVISION, QUALIFICATIONNM,
+		QUALIFICATIONNUM, QUALIFICATIONGRADE, INSTITUTIONSNM, ACQUISITIONDATE,
+		STOPDATE, EMPNO)
+		VALUES(#{qualificationno}, #{qualificationdivision1},
+		#{qualificationnm1}, #{qualificationnum1}, #{qualificationgrade1},
+		#{institutionsnm1},
+		TO_DATE(TO_CHAR(#{acquisitiondate1})),TO_DATE(TO_CHAR(#{stopdate1})),
+		#{empno})
+	</insert>
+	<!-- insert 끝 -->
+	<!-- update 시작 -->
+	<update id="businesstripupdate" parameterType="info2Vo">
+		UPDATE
+		businesstrip
+		SET
+		btno = #{btno}
+		,terms = TO_DATE(TO_CHAR(#{terms}))
+		,terme = TO_DATE(TO_CHAR(#{terme}))
+		,country = #{country}
+		,chuljangji =
+		#{chuljangji}
+		,destination = #{destination}
+		,empno = #{empno}
+		where btno
+		= #{btno}
+	</update>
+	<update id="careerupdate" parameterType="info2Vo">
+		UPDATE CAREER
+		SET
+		CAREERNO = #{careerno}
+		,STARTDATE =
+		TO_DATE(TO_CHAR(#{careerstartdate}))
+		,ENDDATE =
+		TO_DATE(TO_CHAR(#{careerenddate}))
+		,WORKPLACE = #{workplace}
+		,JOBPOSITION = #{jobposition}
+		,RESPONSIBILITIES = #{responsibilities}
+		,CSY = #{csy}
+		,RETIREMENT = #{retirement}
+		,EMPNO = #{empno}
+		where
+		CAREERNO = #{careerno}
+	</update>
+	<update id="degreeupdate" parameterType="info2Vo">
+		UPDATE DEGREE
+		SET
+		DEGREENO = #{degreeno}
+		,DIVISION = #{division}
+		,SCHOOL = #{school}
+		,ENROLL =
+		TO_DATE(TO_CHAR(#{enroll}))
+		,GRADUATED =
+		TO_DATE(TO_CHAR(#{graduated}))
+		,MAJOR = #{major}
+		,MINOR = #{minor}
+		,RM =
+		#{degreerm}
+		,EMPNO = #{empno}
+		where DEGREENO = #{degreeno}
+	</update>
+	<update id="educationupdate" parameterType="info2Vo">
+		UPDATE EDUCATION
+		SET
+		EDUCATIONNO = #{educationno}
+		,EDUCATIONPROCESS = #{educationprocess}
+		,EDUCATIONTYPE = #{educationtype}
+		,STARTDATE =
+		TO_DATE(TO_CHAR(#{startdate}))
+		,ENDDATE = TO_DATE(TO_CHAR(#{enddate}))
+		,EDUCATIONINSTITUTIONS = #{educationinstitutions}
+		,EMPNO = #{empno}
+		where EDUCATIONNO = #{educationno}
+	</update>
+	<update id="familyupdate" parameterType="info2Vo">
+		UPDATE FAMILY
+		SET
+		FAMILYNO = #{familyno}
+		,FAMILYSNAME = #{familysname}
+		,FAMILYSRELATIONSHIP =
+		#{familysrelationship}
+		,GENDER = #{gender}
+		,BIRTHDAY =
+		TO_DATE(TO_CHAR(#{birthday}))
+		,EDUCATION = #{education}
+		,JOB
+		= #{job}
+		,RM = #{familyrm}
+		,EMPNO = #{empno}
+		where FAMILYNO = #{familyno}
+	</update>
+	<update id="issuedupdate" parameterType="info2Vo">
+		UPDATE ISSUED
+		SET
+		ISSUEDNO = #{issuedno}
+		,ISSUEDDATE = TO_DATE(TO_CHAR(#{issueddate}))
+		,DIVISION =
+		#{issueddivision}
+		,ISSUEDNAME = #{issuedname}
+		,EMPLOYEEDIV =
+		#{employeediv}
+		,TEAM = #{team}
+		,PAYSTEP = #{paystep}
+		,POSITION =
+		#{position}
+		,RESPONSIBILITIES = #{issuedresponsibilities}
+		,EMPNO =
+		#{empno}
+		where ISSUEDNO = #{issuedno}
+	</update>
+	<update id="jobresponsibilitiesupdate" parameterType="info2Vo">
+		UPDATE
+		JOBRESPONSIBILITIES
+		SET
+		JRNO = #{jrno}
+		,JOPGROUP = #{jopgroup}
+		,OCCUPATION = #{occupation}
+		,ENTRY =
+		#{entry}
+		,STARTDATE =
+		TO_DATE(TO_CHAR(#{jrstartdate}))
+		,ENDDATE =
+		TO_DATE(TO_CHAR(#{jrenddate}))
+		,IMPORTANCE = #{importance}
+		,RESPONSIBILITIES = #{jrresponsibilities}
+		,EMPNO = #{empno}
+		where JRNO =
+		#{jrno}
+	</update>
+	<update id="languagestudyupdate" parameterType="info2Vo">
+		UPDATE
+		LANGUAGESTUDY
+		SET
+		LANGUAGESTUDYNO = #{languagestudyno}
+		,DIVISION =
+		#{languagestudydivision}
+		,LANGUAGESTUDYNM = #{languagestudynm}
+		,EVALUATIODATE = TO_DATE(TO_CHAR(#{evaluatiodate}))
+		,EI = #{ei}
+		,SCORE =
+		#{score}
+		,GRADE = #{languagestudygrade}
+		,RM = #{languagestudyrm}
+		,EMPNO =
+		#{empno}
+		where LANGUAGESTUDYNO = #{languagestudyno}
+	</update>
+	<update id="performanceevaluationupdate" parameterType="info2Vo">
+		UPDATE
+		PERFORMANCEEVALUATION
+		SET
+		PENO = #{peno}
+		,EVALUATIONYEAR =
+		TO_DATE(TO_CHAR(#{evaluationyear}))
+		,ABILITY = #{ability}
+		,ACHIEVEMENT =
+		#{achievement}
+		,RATER = #{rater}
+		,ORGANIZATION = #{organization}
+		,RM =
+		#{perm}
+		,EMPNO = #{empno}
+		where PENO = #{peno}
+	</update>
+	<update id="qualificationupdate" parameterType="info2Vo">
+		UPDATE
+		QUALIFICATION
+		SET
+		QUALIFICATIONNO = #{qualificationno}
+		,DIVISION =
+		#{qualificationdivision}
+		,QUALIFICATIONNM = #{qualificationnm}
+		,QUALIFICATIONNUM =
+		#{qualificationnum}
+		,QUALIFICATIONGRADE =
+		#{qualificationgrade}
+		,INSTITUTIONSNM = #{institutionsnm}
+		,ACQUISITIONDATE =
+		TO_DATE(TO_CHAR(#{acquisitiondate}))
+		,STOPDATE =
+		TO_DATE(TO_CHAR(#{stopdate}))
+		,EMPNO = #{empno}
+		where QUALIFICATIONNO =
+		#{qualificationno}
+	</update>
+	<update id="rewardandpunishmentupdate" parameterType="info2Vo">
+		UPDATE
+		REWARDANDPUNISHMENT
+		SET
+		RAPNO = #{rapno}
+		,DIVISION = #{rapdivision}
+		,RAPDATE =
+		TO_DATE(TO_CHAR(#{rapdate}))
+		,CONTENT = #{content}
+		,REASON =
+		#{reason}
+		,RM = #{raprm}
+		,EMPNO = #{empno}
+		where RAPNO = #{rapno}
+	</update>
+	<update id="militaryserviceupdate" parameterType="info2Vo">
+		UPDATE
+		MILITARYSERVICE
+		SET
+		MILITARYNO = #{militaryno}
+		,WARLOAD = #{warload}
+		,GRADE = #{grade}
+		,DOGNO = #{dogno}
+		,DISCHARGEDIV = #{dischargediv}
+		,ENLISTMENT = #{enlistment}
+		,DISCHARGE = #{discharge}
+		,RM =
+		#{militaryrm}
+		,EMPNO = #{empno}
+		where MILITARYNO = #{militaryno}
+	</update>
+	<!-- update 끝 -->
+
+	<!-- Delete 시작 -->
+	<delete id="businesstripdelete" parameterType="info2Vo">
+		DELETE FROM
+		businesstrip WHEREw btno = ${btno} and empno = #{empno}
+	</delete>
+
+	<delete id="careerdelete" parameterType="info2Vo">
+		DELETE FROM career WHERE
+		careerno = ${careerno} and empno = #{empno}
+	</delete>
+
+	<delete id="degreedelete" parameterType="info2Vo">
+		DELETE FROM degree WHERE
+		degreeno = ${degreeno} and empno = #{empno}
+	</delete>
+
+	<delete id="educationdelete" parameterType="info2Vo">
+		DELETE FROM education
+		WHERE educationno = ${educationno} and empno = #{empno}
+	</delete>
+
+	<delete id="familydelete" parameterType="info2Vo">
+		DELETE FROM family WHERE
+		familyno = ${familyno} and empno = #{empno}
+	</delete>
+
+	<delete id="issueddelete" parameterType="info2Vo">
+		DELETE FROM issued WHERE
+		issuedno = ${issuedno} and empno = #{empno}
+	</delete>
+
+	<delete id="jobresponsibilitiesdelete" parameterType="info2Vo">
+		DELETE FROM
+		jobresponsibilities WHERE jrno=${jrno} and empno=#{empno}
+	</delete>
+
+	<delete id="languagestudydelete" parameterType="info2Vo">
+		DELETE FROM
+		languagestudy WHERE languagestudyno = ${languagestudyno} and
+		empno = #{empno}
+	</delete>
+
+	<delete id="militaryservicedelete" parameterType="info2Vo">
+		DELETE FROM
+		militaryservice WHERE militaryno = ${militaryno} and empno = #{empno}
+	</delete>
+
+	<delete id="performanceevaluationdelete" parameterType="info2Vo">
+		DELETE
+		FROM performanceevaluation WHERE peno = ${peno} and empno = #{empno}
+	</delete>
+
+	<delete id="qualificationdelete" parameterType="info2Vo">
+		DELETE FROM
+		qualification WHERE qualificationno = ${qualificationno} and
+		empno = #{empno}
+	</delete>
+
+	<delete id="rewardandpunishmentdelete" parameterType="info2Vo">
+		DELETE FROM
+		rewardandpunishment WHERE rapno = #{rapno} and empno = #{empno}
+	</delete>
+
+	<select id="vacationselect" parameterType="VacationVo" resultType="vacationVo">
+		select EMPNO, BEGIN_DE, END_DE, HALF_DAY_AT, RM, USE_AT, VCATN_DE, VCATN_NM
+		from tb_vcatn
+		where empno = #{empno}
+		and SANCTN_CODE = 'R104'
+	</select>
+
+	<select id="vacationempno" parameterType="empVo" resultType="empVo">
+		select
+		EMPNO,total_vacation
+		from TB_EMPL
+		where empno = #{empno}
+	</select>
+	
+	<select id="vacationVcatnDe" parameterType="VacationVo" resultType="VacationVo">
+	SELECT sum(vcatn_de) vcatn_de
+	FROM tb_vcatn
+	where empno = #{empno}
+	and SANCTN_CODE = 'R104'
+	</select>
+	
+	<select id="vacationVcatnDeing" parameterType="VacationVo" resultType="VacationVo">
+		select EMPNO, BEGIN_DE, END_DE, HALF_DAY_AT, RM, USE_AT, VCATN_DE, VCATN_NM
+		from tb_vcatn
+		where empno = #{empno}
+		and SANCTN_CODE != 'R104'
+	</select>
+	
+	<select id="allehr2" resultType="ehr2Vo">
+	<![CDATA[
+	select A.empno, A.nm, A.file_no, A.tm start_tm, B.tm end_tm
+	from
+	(select c.empno, c.nm, b.nm ofcpsNm, a.tm, c.file_no, a.nm workCheck
+	from
+	(select empno, tm, rcord_code, nm
+	from tb_work, tb_unity_code d
+	where to_date(to_char(sysdate),'YYYY-MM-DD') = to_date(to_char(tm),'YYYY-MM-DD')
+	and TB_WORK.RCORD_CODE = d.code
+	and TB_WORK.RCORD_CODE = 'D101') a, tb_empl c, tb_unity_code b
+	where a.empno(+) = c.empno
+	and c.OFCPS_CODE = b.code
+	order by tm desc) A,
+	
+	(select c.empno,a.tm, c.file_no, a.nm workCheck
+	from
+	(select empno, tm, rcord_code, nm
+	from tb_work, tb_unity_code d
+	where to_date(to_char(sysdate),'YYYY-MM-DD') = to_date(to_char(tm),'YYYY-MM-DD')
+	and TB_WORK.RCORD_CODE = d.code
+	and TB_WORK.RCORD_CODE = 'D102') a, tb_empl c, tb_unity_code b
+	where a.empno(+) = c.empno
+	and c.OFCPS_CODE = b.code
+	order by tm desc) B
+	
+	where A.empno = B.empno
+	]]>
+	</select>
+</mapper>

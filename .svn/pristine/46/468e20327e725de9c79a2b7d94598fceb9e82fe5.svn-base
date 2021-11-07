@@ -1,0 +1,23 @@
+package kr.or.ddit.file.mapper;
+
+import java.util.List;
+
+import kr.or.ddit.file.vo.FileVO;
+import kr.or.ddit.notice.vo.NoticeVO;
+
+public interface FileMapper {
+	// 첨부파일 등록
+	public int fileInsert(FileVO vo);
+	
+	// 첨부파일 번호
+	public int fileNo();
+	
+	// 첨부파일 조회
+	public List<FileVO> fileSelect(int fileNo);
+	
+	// 첨부파일 삭제
+	public int fileDelete(String fileNm);
+	
+	// 첨부파일 삭제
+	public int fileAllDelete(int fileNo);
+}

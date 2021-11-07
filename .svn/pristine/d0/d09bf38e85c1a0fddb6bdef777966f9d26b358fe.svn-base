@@ -1,0 +1,47 @@
+package kr.or.ddit.ehr.service.impl;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+
+import org.springframework.stereotype.Service;
+
+import kr.or.ddit.ehr.mapper.EhrMapper;
+import kr.or.ddit.ehr.service.EhrService;
+import kr.or.ddit.ehr.vo.EhrVO;
+import kr.or.ddit.login.vo.EmpVO;
+
+@Service
+public class EhrServiceImpl implements EhrService{
+
+	@Autowired
+	private EhrMapper ehrMapper;
+	
+	@Override
+	public int insert(EhrVO ev) {
+		return ehrMapper.insert(ev);
+	}
+	
+	@Override
+	public List<EhrVO> time(EhrVO ev) {
+		try {
+			int empno = ev.getEmpNo();
+		}catch(NumberFormatException ex) {
+			return (List<EhrVO>) null;
+		}
+		List<EhrVO> ev2 = this.ehrMapper.select(ev);
+		return ev2;
+	}
+
+	@Override
+	public int total(EhrVO ev) {
+		try {
+			int empno = ev.getEmpNo();
+		}catch(NumberFormatException ex) {
+			return 0;
+		}
+		int ev2 = this.ehrMapper.total(ev);
+		return ev2;
+	}
+	
+}

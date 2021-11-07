@@ -1,0 +1,87 @@
+package kr.or.ddit.bogo.service.impl;
+
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import kr.or.ddit.bogo.mapper.BogoMapper;
+import kr.or.ddit.bogo.service.BogoService;
+import kr.or.ddit.bogo.vo.BogoVo;
+
+@Service
+public class BogoServiceImpl implements BogoService {
+	
+	@Autowired
+	private BogoMapper bogomapper;
+
+	
+	@Override
+	public List<BogoVo> bogoList(Map<String, Object> map) throws Exception  {
+		return this.bogomapper.bogoList(map);
+
+	}
+	@Override
+	public List<BogoVo> bogoMenuList(Map<String, Object> map) throws Exception  {
+		return this.bogomapper.bogoMenuList(map);
+		
+	}
+
+	@Override
+	public int bogoInsert(BogoVo bogoVo) {
+		
+      return this.bogomapper.bogoInsert(bogoVo);
+	}
+	
+	@Override
+	public int bogoAdd(BogoVo bogoVo) {
+		int affectedRowCnt = this.bogomapper.bogoAdd(bogoVo);
+		if(affectedRowCnt>0) {
+			int affectedRowCnt2 = this.bogomapper.bogozaInsert(bogoVo);
+			int affectedRowCnt3 = this.bogomapper.masterInsert(bogoVo);	
+		}
+		
+		return 1;		
+	}
+
+	@Override
+	public BogoVo bogoDetail(String reprtNo) {
+		return this.bogomapper.bogoDetail(reprtNo);
+
+	}
+
+	@Override
+	public int selectCount(){ 
+		return this.bogomapper.selectCount();
+	
+
+	}
+
+	@Override
+	public int bogoDelete(String reprtNo) {
+		
+		return this.bogomapper.bogoDelete(reprtNo);
+	}
+	@Override
+	public int bogoTotal(Map<String, Object> map) {
+		return this.bogomapper.bogoTotal(map);
+	}
+
+	@Override
+	public int bogoUpdate(BogoVo bogoVo) throws Exception {
+		// TODO Auto-generated method stub
+		return this.bogomapper.bogoUpdate(bogoVo);
+	}
+
+	@Override
+	public int updateWithImage(BogoVo bogoVo) throws Exception {
+		// TODO Auto-generated method stub
+		return this.bogomapper.updateWithImage(bogoVo);
+	}
+	@Override
+	public int selectCountBogo(String reprtNo) {
+		return this.bogomapper.selectCountBogo(reprtNo);
+	}
+	}

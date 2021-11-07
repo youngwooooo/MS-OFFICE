@@ -1,0 +1,506 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.bogo.mapper.BogoMapper">
+	<!-- private int reprtListNo; //보고서 목록번호 private int reprtNo; //보고서 번호 private 
+		int reportrEmpno; // 보고자 사번 private String sj; //제목 private String cn; //내용 
+		private String writngTm; //작성 시간 private int col; //파일 번호 private int updtEmpno; 
+		//수정자 사번 private String updtTm; // 수정 시각 private int rnum;
+		 -->
+		 <select id="bogoAllselect" parameterType="kr.or.ddit.bogo.vo.BogoVo"
+		resultType="kr.or.ddit.bogo.vo.BogoVo">
+SELECT T.* 
+		FROM (
+	SELECT ROW_NUMBER() OVER(ORDER BY A.REPRT_NO ASC) rnum 
+		,A.REPRT_NO AS reprtNo
+		, A.REPORTR_EMPNO AS reportrEmpno
+		, A.SJ AS sj
+		, A.CN AS cn
+		, A.WRITNG_TM AS writngTm
+		, A.DEPARTMENT AS department
+		, B.NM AS reportrNm
+		FROM TB_REPRT A, TB_EMPL B 
+		WHERE A.REPORTR_EMPNO = B.EMPNO
+<choose>
+			<when test="selSearch=='' and selSearch.equals('')">
+			AND	A.SJ || A.CN LIKE '%' || #{keyword} || '%'
+			</when>
+			<otherwise>
+				<if test="selSearch!='' and selSearch.equals('sj')">
+				AND A.SJ LIKE '%' || #{keyword} || '%'
+				</if>
+				<if test="selSearch!='' and selSearch.equals('cn')">
+				AND A.CN LIKE '%' || #{keyword} || '%'
+				</if>
+			</otherwise>
+		</choose>
+)T
+WHERE T.RNUM BETWEEN #{currentPage} * 10 - 9 AND #{currentPage} * 10
+
+</select>
+	<!-- 전체조회 -->
+	<select id="bogoList" parameterType="kr.or.ddit.bogo.vo.BogoVo"
+		resultType="kr.or.ddit.bogo.vo.BogoVo">
+	SELECT 
+		A.REPRT_LIST_NO AS reprtListNo
+		, A.REPRT_NO AS reprtNo
+		, A.REPORTR_EMPNO AS reportrEmpno
+		, A.SJ AS sj
+		, A.CN AS cn
+		, A.WRITNG_TM AS writngTm
+		, A.DEPARTMENT AS department
+		, B.NM AS reportrNm
+        ,C.RSPNBER_EMPNO
+		FROM TB_REPRT A, TB_EMPL B , TB_RSPNBER C
+		WHERE A.REPORTR_EMPNO = B.EMPNO
+        AND C.REPRT_LIST_NO =A.REPRT_LIST_NO
+	</select>
+	
+	<select id="bogoTotal" parameterType="hashMap" resultType="int">
+		SELECT COUNT(*)
+		FROM TB_REPRT A, TB_EMPL B , TB_RSPNBER C
+		WHERE A.REPORTR_EMPNO = B.EMPNO
+        AND C.REPRT_LIST_NO =A.REPRT_LIST_NO
+			<choose>
+			<when test="selSearch=='' and selSearch.equals('')">
+				AND SJ || CN LIKE '%' || #{keyword} || '%'
+			</when>
+			<otherwise>
+				<if test="selSearch!='' and selSearch.equals('sj')">
+				AND SJ LIKE '%' || #{keyword} || '%'
+				</if>
+				<if test="selSearch!='' and selSearch.equals('cn')">
+				AND CN LIKE '%' || #{keyword} || '%'
+				</if>
+			</otherwise>
+		</choose>
+	</select>
+	<!-- <select id="selectApproveMenu" > SELECT DISTINCT B.REPRT_LIST_NO ,A.RSPNBER_EMPNO 
+		,A.RM ,A.CNFIRM_AT ,C.SJ as approveSj FROM TB_REPRT_CNFIRM A, TB_REPRT B 
+		,TB_EMPL E,TB_REPRT_LIST C WHERE A.REPRT_NO = B.REPRT_NO AND B.REPORTR_EMPNO 
+		= E.EMPNO AND C.REPRT_LIST_NO = B.REPRT_LIST_NO AND A.CNFIRM_AT='Y' ORDER 
+		BY REPRT_LIST_NO DESC </select> -->
+	
+	<select id="bogozaSelect"
+		resultType="kr.or.ddit.bogo.vo.BogoVo">
+		SELECT
+		    A.reportr_empno,
+		    A.reprt_list_no,
+		    B.nm reportrNm
+		FROM
+		    tb_reportr A, tb_empl B
+		where A.REPORTR_EMPNO = B.EMPNO
+	</select>
+	
+	
+	<select id="bogoSelect"
+		parameterType="kr.or.ddit.bogo.vo.BogoVo"
+		resultType="kr.or.ddit.bogo.vo.BogoVo">
+	SELECT A.REPRT_LIST_NO,
+	LISTAGG(B.REPORTR_EMPNO , ',') WITHIN GROUP(ORDER BY B.REPORTR_EMPNO) reportrNm,
+	A.oprtr_empno,
+	A.sj,
+	A.cn,
+	A.file_no,
+	A.department,
+	A.writng_tm
+	FROM
+	TB_REPRT_LIST A, TB_REPORTR B
+	WHERE A.REPRT_LIST_NO = B.REPRT_LIST_NO group by A.reprt_list_no,
+	A.oprtr_empno, A.sj,
+	A.cn, A.file_no, A.department, A.writng_tm
+	ORDER BY
+	A.REPRT_LIST_NO
+	DESC
+        
+	</select>
+
+	<select id="bogoMenuList"
+		parameterType="kr.or.ddit.bogo.vo.BogoVo"
+		resultType="kr.or.ddit.bogo.vo.BogoVo">
+		SELECT LISTAGG(E.NM , ',') WITHIN GROUP(ORDER BY E.NM) AS reportrNm
+		,B.REPRT_NO
+		,C.CN
+		,C.WRITNG_TM
+		,C.DEPARTMENT
+		,A.REPORTR_EMPNO
+		,C.REPRT_LIST_NO
+		,A.RSPNBER_EMPNO
+		,A.CNFIRM_TM
+		,A.RM
+		,A.CNFIRM_AT
+		,B.SJ AS approveSj
+		,C.SJ
+		FROM
+		TB_REPRT_CNFIRM A, TB_REPRT B, TB_REPRT_LIST C, TB_REPORTR D, TB_EMPL E
+		WHERE A.REPRT_LIST_NO = B.REPRT_LIST_NO
+		AND
+		B.REPRT_LIST_NO =C.REPRT_LIST_NO
+		AND C.REPRT_LIST_NO = D.REPRT_LIST_NO
+		AND B.REPORTR_EMPNO = E.EMPNO
+		group by B.REPRT_NO, C.CN, C.WRITNG_TM, C.DEPARTMENT, A.REPORTR_EMPNO,
+		C.REPRT_LIST_NO, A.RSPNBER_EMPNO, A.CNFIRM_TM, A.RM, A.CNFIRM_AT,
+		B.SJ, C.SJ
+		ORDER BY
+		REPRT_LIST_NO
+		DESC
+		<!-- SELECT A.REPRT_LIST_NO, A.OPRTR_EMPNO, A.SJ, A.CN, A.FILE_NO, A.DEPARTMENT 
+			,A.WRITNG_TM FROM TB_REPRT_LIST A , TB_REPRT_CNFIRM B WHERE A.REPRT_LIST_NO 
+			= B.REPRT_LIST_NO AND B.CNFIRM_AT='Y,Y' ORDER BY REPRT_LIST_NO DESC -->
+	</select>
+	<select id="bogoApproveMenu" parameterType="String"
+		resultType="kr.or.ddit.bogo.vo.BogoVo">
+		SELECT T.* 
+		FROM (
+	SELECT ROW_NUMBER() OVER(ORDER BY A.REPRT_LIST_NO DESC) rnum
+        ,A.REPRT_LIST_NO
+        ,A.REPRT_NO
+        ,A.REPORTR_EMPNO
+        ,A.SJ
+        ,A.CN
+        ,A.WRITNG_TM
+        ,A.FILE_NO
+        ,A.UPDT_EMPNO
+        ,A.UPDT_TM
+        ,A.DEPARTMENT
+        ,E.NM AS reportrNm
+    FROM
+        TB_REPRT A, TB_REPRT_CNFIRM B ,TB_EMPL E
+    WHERE 
+        (A.REPRT_LIST_NO = B.REPRT_LIST_NO
+        AND E.EMPNO = A.REPORTR_EMPNO
+        AND A.REPRT_NO = B.REPRT_NO)
+        <choose>
+			<when test="selSearch=='' and selSearch.equals('')">
+			AND	A.SJ || A.CN LIKE '%' || #{keyword} || '%'
+			</when>
+			<otherwise>
+				<if test="selSearch!='' and selSearch.equals('sj')">
+				AND A.SJ LIKE '%' || #{keyword} || '%'
+				</if>
+				<if test="selSearch!='' and selSearch.equals('cn')">
+				AND A.CN LIKE '%' || #{keyword} || '%'
+				</if>
+			</otherwise>
+		</choose>
+)T
+WHERE T.RNUM BETWEEN #{currentPage} * 10 - 9 AND #{currentPage} * 10
+	</select>
+
+
+	<insert id="bogoInsert"
+		parameterType="kr.or.ddit.bogo.vo.BogoVo">
+		INSERT INTO TB_REPRT (
+		REPRT_NO
+		,REPRT_LIST_NO
+		,REPORTR_EMPNO
+		,SJ
+		,CN
+		,WRITNG_TM
+		,FILE_NO
+		,DEPARTMENT
+		)
+		VALUES
+		(
+		(SELECT NVL(MAX(REPRT_NO),0)+1 FROM TB_REPRT)
+		,#{reprtListNo}
+		,#{reportrEmpno}
+		,#{sj}
+		,#{cn}
+		,sysdate
+		,#{fileNo}
+		,'MS그룹'
+		)
+	</insert>
+	<insert id="bogozaInsert"
+		parameterType="kr.or.ddit.bogo.vo.BogoVo">
+		INSERT INTO TB_REPORTR (
+		REPRT_LIST_NO
+		,REPORTR_EMPNO
+		) VALUES (
+		#{reprtListNo}
+		,#{reportrEmpno}
+		)
+	</insert>
+	<insert id="masterInsert"
+		parameterType="kr.or.ddit.bogo.vo.BogoVo">
+		INSERT INTO TB_RSPNBER (
+		REPRT_LIST_NO
+		,RSPNBER_EMPNO
+		) VALUES (
+		#{reprtListNo}
+		,#{rspnberEmpno}
+		)
+	</insert>
+	<insert id="bogoAdd" parameterType="kr.or.ddit.bogo.vo.BogoVo">
+		INSERT INTO TB_REPRT_LIST (
+		REPRT_LIST_NO
+		,OPRTR_EMPNO
+		,SJ
+		,CN
+		,DEPARTMENT
+		,WRITNG_TM
+		)
+		VALUES
+		(
+		(SELECT NVL(MAX(REPRT_LIST_NO),0)+1 FROM TB_REPRT_LIST)
+		,#{oprtrEmpno}
+		,#{sj}
+		,#{cn}
+		,'MS그룹'
+		,sysdate
+		)
+	</insert>
+
+	<!-- 상세보기 -->
+	<select id="bogoDetail" parameterType="String"
+		resultType="kr.or.ddit.bogo.vo.BogoVo">
+ 	    SELECT
+		A.REPRT_LIST_NO AS reprtListNo
+		, A.REPRT_NO AS reprtNo
+		, A.REPORTR_EMPNO AS reportrEmpno
+		, A.SJ AS sj
+		, A.CN AS cn
+		, A.WRITNG_TM AS writngTm
+		, A.DEPARTMENT AS department
+		, B.NM AS reportrNm
+		, A.FILE_NO
+		FROM TB_REPRT A, TB_EMPL B ,TB_REPRT_LIST C
+		WHERE A.REPORTR_EMPNO = B.EMPNO
+         AND A.REPRT_LIST_NO = C.REPRT_LIST_NO
+         AND A.REPRT_NO=#{reprtNo}
+
+	</select>
+	<select id="bogomasterSelect" resultType="kr.or.ddit.bogo.vo.BogoVo">
+	              SELECT
+    reprt_list_no,
+    rspnber_empno
+FROM
+    tb_rspnber
+    WHERE reprt_list_no=#{reprt_list_no}
+	</select>
+	
+	<!-- 보고 목록 -->
+	<select id="bogoInfoList" parameterType="String"
+		resultType="kr.or.ddit.bogo.vo.BogoVo">
+    
+     select a.*
+                , c.nm AS respntrNm
+        from 
+            (
+            SELECT
+            A.REPRT_LIST_NO AS reprtListNo
+            , A.REPRT_NO AS reprtNo
+            , A.REPORTR_EMPNO AS reportrEmpno
+            , A.SJ AS sj
+            , A.CN AS cn
+            , A.WRITNG_TM AS writngTm
+            , A.DEPARTMENT AS department
+            , B.NM AS reportrNm
+            , A.FILE_NO
+            FROM TB_REPRT A, TB_EMPL B ,TB_REPRT_LIST C 
+            WHERE A.REPORTR_EMPNO = B.EMPNO
+             AND A.REPRT_LIST_NO = C.REPRT_LIST_NO
+             AND A.REPRT_NO=#{reprtNo}
+             ) a
+            , tb_rspnber b
+            , TB_EMPL c
+        where a.reprtListNo = b.reprt_list_no
+            and b.rspnber_empno = c.empno    
+    <!--     SELECT
+		A.REPRT_LIST_NO AS reprtListNo
+		, A.REPRT_NO AS reprtNo
+		, A.REPORTR_EMPNO AS reportrEmpno
+		, A.SJ AS sj
+		, A.CN AS cn
+		, A.WRITNG_TM AS writngTm
+		, A.DEPARTMENT AS department
+		, B.NM AS reportrNm
+		FROM TB_REPRT A, TB_EMPL B ,TB_REPRT_LIST C
+		WHERE A.REPORTR_EMPNO = B.EMPNO
+         AND A.REPRT_LIST_NO = C.REPRT_LIST_NO
+         AND A.REPRT_NO=#{reprtNo}
+ -->
+	</select>
+
+	<!-- 삭제 -->
+	<delete id="bogoDelete" parameterType="int">
+		DELETE tb_reprt_list
+		WHERE
+		REPRT_LIST_NO = #{reprtListNo}
+	</delete>
+<!-- 삭제할 번호  -->
+	<select id="delFileNo" parameterType="int"  resultType="int">
+		SELECT FILE_NO
+		FROM
+			tb_reprt_list
+		WHERE
+			REPRT_LIST_NO = #{reprtListNo}
+	</select>
+
+	<!-- 수정 -->
+	<update id="bogoUpdate"
+		parameterType="kr.or.ddit.bogo.vo.BogoVo">
+		UPDATE tb_reprt_list
+		SET SJ = #{sj}, CN= #{cn}, REPRT_LIST_NO = #{reprtListNo}
+		, WRITNG_TM = sysdate, FILE_NO = #{fileNo}
+		WHERE REPRT_LIST_NO = #{reprtListNo}
+	</update>
+	<!-- 가장 최근에 추가한 보고서 목록 번호 -->
+	<select id="updateSelect"
+		resultType="kr.or.ddit.bogo.vo.BogoVo">
+		 SELECT
+		A.REPRT_LIST_NO AS reprtListNo
+		, A.REPRT_NO AS reprtNo
+		, A.REPORTR_EMPNO AS reportrEmpno
+		, A.SJ AS sj
+		, A.CN AS cn
+		, A.WRITNG_TM AS writngTm
+		, A.DEPARTMENT AS department
+		, B.NM AS reportrNm
+		, A.FILE_NO
+		FROM TB_REPRT A, TB_EMPL B ,TB_REPRT_LIST C
+		WHERE A.REPORTR_EMPNO = B.EMPNO
+         AND A.REPRT_LIST_NO = C.REPRT_LIST_NO
+         AND A.REPRT_NO=#{reprtNo}
+
+	</select>
+	<select id="lastAddBogoList"
+		resultType="kr.or.ddit.bogo.vo.BogoVo">
+		SELECT *
+		FROM
+		(SELECT
+		reprt_list_no
+		,oprtr_empno
+		,sj
+		,cn
+		,file_no
+		,department
+		,writng_tm
+		FROM
+		tb_reprt_list
+		ORDER BY Reprt_List_No desc)
+		WHERE ROWNUM = 1
+	</select>
+	<!-- bogoApproveAdd -->
+	<insert id="bogoApproveAdd"
+		parameterType="kr.or.ddit.bogo.vo.BogoVo">
+		INSERT INTO tb_reprt_cnfirm (
+		REPRT_NO,
+		REPORTR_EMPNO,
+		REPRT_LIST_NO,
+		RSPNBER_EMPNO,
+		CNFIRM_TM,
+		CNFIRM_AT
+		) VALUES (
+		#{reprtNo},
+		#{reportrEmpno},
+		#{reprtListNo},
+		#{rspnberEmpno},
+		sysdate,
+		#{cnfirmAt}
+		)
+	</insert>
+	<select id="bogoReportSelect">
+		SELECT
+		A.reprt_list_no,
+		A.reprt_no,
+		B.NM AS reportrNm,
+		A.sj,
+		A.cn,
+		A.writng_tm,
+		A.file_no,
+		A.updt_empno,
+		A.updt_tm,
+		A.department
+		FROM
+		TB_REPRT A, TB_EMPL B,TB_REPRT_LIST C
+		WHERE A.REPORTR_EMPNO = B.EMPNO
+		AND A.REPRT_LIST_NO = C.REPRT_LIST_NO
+	</select>
+	<select id="bogoNotSelect"
+		resultType="kr.or.ddit.bogo.vo.BogoVo">
+		        
+    SELECT T.*
+    FROM(
+    SELECT ROW_NUMBER() OVER(ORDER BY A.REPRT_LIST_NO DESC) rnum
+        ,A.REPRT_LIST_NO
+        ,A.REPRT_NO
+        ,A.REPORTR_EMPNO
+        ,A.SJ
+        ,A.CN
+        ,A.WRITNG_TM
+        ,A.FILE_NO
+        ,A.UPDT_EMPNO
+        ,A.UPDT_TM
+        ,A.DEPARTMENT
+        ,E.NM AS reportrNm
+    FROM
+        TB_REPRT A, TB_REPRT_CNFIRM B ,TB_EMPL E
+    WHERE 
+        (A.REPRT_LIST_NO = B.REPRT_LIST_NO(+)
+        AND A.REPRT_NO = B.REPRT_NO(+))
+        AND B.Cnfirm_At is null
+       AND E.EMPNO = A.REPORTR_EMPNO
+       <choose>
+			<when test="selSearch=='' and selSearch.equals('')">
+			AND	A.SJ || A.CN LIKE '%' || #{keyword} || '%'
+			</when>
+			<otherwise>
+				<if test="selSearch!='' and selSearch.equals('sj')">
+				AND A.SJ LIKE '%' || #{keyword} || '%'
+				</if>
+				<if test="selSearch!='' and selSearch.equals('cn')">
+				AND A.CN LIKE '%' || #{keyword} || '%'
+				</if>
+			</otherwise>
+		</choose>
+)T
+WHERE T.RNUM BETWEEN #{currentPage} * 10 - 9 AND #{currentPage} * 10
+       
+
+	</select>
+	<select id="waitMenu"
+		resultType="kr.or.ddit.bogo.vo.BogoVo">
+		        
+    SELECT T.*
+    FROM(
+    SELECT ROW_NUMBER() OVER(ORDER BY A.REPRT_LIST_NO DESC) rnum
+        ,A.REPRT_LIST_NO
+        ,A.REPRT_NO
+        ,A.REPORTR_EMPNO
+        ,A.SJ
+        ,A.CN
+        ,A.WRITNG_TM
+        ,A.FILE_NO
+        ,A.UPDT_EMPNO
+        ,A.UPDT_TM
+        ,A.DEPARTMENT
+        ,E.NM AS reportrNm
+    FROM
+        TB_REPRT A, TB_REPRT_CNFIRM B ,TB_EMPL E
+    WHERE 
+        (A.REPRT_LIST_NO = B.REPRT_LIST_NO(+)
+        AND A.REPRT_NO = B.REPRT_NO(+))
+        AND B.Cnfirm_At is null
+       AND E.EMPNO = A.REPORTR_EMPNO
+       <choose>
+			<when test="selSearch=='' and selSearch.equals('')">
+			AND	A.SJ || A.CN LIKE '%' || #{keyword} || '%'
+			</when>
+			<otherwise>
+				<if test="selSearch!='' and selSearch.equals('sj')">
+				AND A.SJ LIKE '%' || #{keyword} || '%'
+				</if>
+				<if test="selSearch!='' and selSearch.equals('cn')">
+				AND A.CN LIKE '%' || #{keyword} || '%'
+				</if>
+			</otherwise>
+		</choose>
+)T
+WHERE T.RNUM BETWEEN #{currentPage} * 10 - 9 AND #{currentPage} * 10
+       
+
+	</select>
+</mapper>

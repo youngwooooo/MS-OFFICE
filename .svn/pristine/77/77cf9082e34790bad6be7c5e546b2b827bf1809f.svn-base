@@ -1,0 +1,90 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+<script src="\resources\js\jquery.min.js"></script>
+<div>
+<!-- private int reprtListNo;  //보고서 목록번호
+	private int reprtNo;  //보고서 번호
+	private int reportrEmpno; // 보고자 사번
+	private String sj; //제목
+	private String cn; //내용
+	private String writngTm; //작성 시간
+	private int col; //파일 번호
+	private int updtEmpno; //수정자 사번
+	private String updtTm; // 수정 시각
+	private int rnum; 
+	private String Department;//부서 -->
+	<div class="card shadow mb-4">
+		<div class="card-header py-3">
+			<h6 class="m-0 font-weight-bold text-primary">보고서 추가</h6>
+		</div>
+		<div class="card-body">
+			<div id="dataTable_wrapper" class="dataTables_wrapper dt-bootstrap4">
+
+				<form action="/bogo/add" method="post">
+				<input type="hidden"
+									class="form-control" name="empno" id="empno" value="${empVo.empno}">
+					<!-- form start -->
+					<div class="row">
+						<div class="col-sm-6">
+							<div class="form-group">
+								<label for="department">부서</label> <input type="text"
+									class="form-control" name="department" id="department" value="MS그룹" disabled="disabled">
+							</div>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-sm-6">
+							<div class="form-group">
+								<label for="sj">제목</label> <input type="text"
+									class="form-control" name="sj" id="sj">
+							</div>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-sm-6">
+							<div class="form-group">
+								<label for="cn">내용</label> <input type="text"
+									class="form-control" name="cn" id="cn" style="height: 300px;">
+							</div>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-sm-6">
+							<div class="form-group">
+								<label for="reportr">보고자</label> <input type="text"
+									class="form-control" name="reportr" id="reportr">
+							</div>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-sm-6">
+							<div class="form-group">
+								<label for="oprtrEmpno">운영자</label> <input type="text"
+									class="form-control" name="oprtrEmpno" id="oprtrEmpno" value="${sessionScope.nm}">
+							</div>
+							
+						</div>
+					</div>
+					<div>
+						<div>
+							보고양식<span style="color: red;">*</span><br /> 
+							<input type="file">
+						</div>
+					</div>
+
+					<hr>
+
+					<div class="row">
+						<div class="col-sm-12 text-right">
+							<button type="submit" class="btn btn-primary" id="btnSubmit">등록</button>
+							<button type="reset" class="btn btn-light">취소</button>
+							<button type="button" class="btn btn-warning"
+								onclick="javascript:history.go(-1)">뒤로가기</button>
+						</div>
+					</div>
+
+				</form>
+				<!-- // form end -->
+			</div>
+		</div>
+	</div>

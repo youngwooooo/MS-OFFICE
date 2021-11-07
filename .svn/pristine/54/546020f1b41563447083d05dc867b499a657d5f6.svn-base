@@ -1,0 +1,61 @@
+package kr.or.ddit.calendar.controller;
+
+import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import kr.or.ddit.calendar.service.CalendarService;
+import kr.or.ddit.calendar.vo.CalendarVO;
+import lombok.extern.slf4j.Slf4j;
+
+@RequestMapping("/calendar")
+@Slf4j
+@Controller
+public class CalendarController {
+	private final Logger logger = LoggerFactory.getLogger(CalendarController.class);
+	
+	@Autowired
+	private CalendarService cs;
+
+	@GetMapping("/home")
+	public String calendarHome() {
+		return "calendar/calendarHome";
+	}
+	
+	@ResponseBody
+	@GetMapping("/allSchedule")
+	public List<CalendarVO> calendarAllSchedule() {
+		List<CalendarVO> scheduleList = cs.selectScheduleList();
+		return scheduleList;
+	}
+	
+	@PostMapping("/edit")
+	public String calendarEdit(@ModelAttribute CalendarVO calendarVO) {
+		logger.info("calendarVO : " + calendarVO);
+		int result = cs.editSchedule(calendarVO);
+		return "redirect:/calendar/home";
+	}
+	
+	@PostMapping("/delete")
+	public String calendarDelete(@RequestParam int schdulNo) {
+		int result = cs.deleteSchedule(schdulNo);
+		return "redirect:/calendar/home";
+	}
+	
+	@PostMapping("/create")
+	public String calenderCreate(@ModelAttribute CalendarVO calendarVO) {
+		logger.info("일정등록 파라미터 : " +calendarVO);
+		int result = cs.createSchedule(calendarVO);
+		return "redirect:/calendar/home";
+	}
+	
+}

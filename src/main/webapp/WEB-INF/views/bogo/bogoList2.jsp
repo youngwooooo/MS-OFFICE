@@ -1,0 +1,119 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@ taglib prefix="form" uri="http://www.springframework.org/tags/form"%>
+<%@ taglib prefix="spring" uri="http://www.springframework.org/tags"%>
+<!DOCTYPE html>
+
+<html>
+<body>
+	<div class="card shadow mb-4" style="width: 98%;">
+		<div class="card-header py-3">
+			<h6 class="m-0 font-weight-bold text-primary">보고</h6>
+		</div>
+		<br>
+
+		<div class="card-body">
+			<div class="table-responsive">
+				<div id="dataTable_wrapper" class="dataTables_wrapper dt-bootstrap4" style="width: 99%">
+					<div class="row">
+						<div class="col-sm-12 col-md-6">
+							<div class="dataTables_length" id="dataTable_length"></div>
+						</div>
+
+						<!-- 	 <div class="faq-tab"> 
+                        <ul>
+                            <li ><a href="#" onclick="faqList('srchFaqCtgCd', 'ALL'); return false;">전체</a></li>             
+                            <li ><a href="#" onclick="faqList('srchFaqCtgCd', '1007'); return false;">주민등록</a></li>
+                            <li ><a href="#" onclick="faqList('srchFaqCtgCd', '1001'); return false;">민원발급</a></li>
+                            <li ><a href="#" onclick="faqList('srchFaqCtgCd', '1011'); return false;">회원관리</a></li>
+                            <li ><a href="#" onclick="faqList('srchFaqCtgCd', '1012'); return false;">처리결과</a></li>
+                            <li ><a href="#" onclick="faqList('srchFaqCtgCd', '1004'); return false;">민원신청</a></li>
+                            <li ><a href="#" onclick="faqList('srchFaqCtgCd', '1003'); return false;">인증</a></li>
+                            <li ><a href="#" onclick="faqList('srchFaqCtgCd', '1002'); return false;">전자결제</a></li>
+                            <li ><a href="#" onclick="faqList('srchFaqCtgCd', '1010'); return false;">환경설정</a></li>
+                            <li ><a href="#" onclick="faqList('srchFaqCtgCd', '1014'); return false;">생활정보</a></li>
+                            <li ><a href="#" onclick="faqList('srchFaqCtgCd', '1005'); return false;">기타민원</a></li>
+                            
+                        </ul>
+                    </div> -->
+
+						<div class="col-sm-12 col-md-6">
+							<div id="dataTable_filter" class="dataTables_filter" style="width: 60%; float: right;">
+
+								<div style="float: right;">
+									<form method="get" action="/bogo/list" name="frmSearch" id="frmSearch" style="display: inline-block;">
+										검색: &nbsp;&nbsp;
+										<select id="search" name="search">
+
+											<option value="">전체</option>
+											<option id="title" value="title" checked==true제목></option>
+											<option id="content" value="content">내용</option>
+											<option id="faqKwdCode" value="faqKwdCode">분류</option>
+										</select>
+										&nbsp;&nbsp;<input type="checkbox" id="selectAll" name="selectAll"><label for="selectAll">목록</label>&nbsp;&nbsp;
+										<div>
+											<br> <input type="text" id="keyword" name="keyword" placeholder="검색어를 입력해주세요" value="" style="height: 35px; width: 175px; float: left; margin-bottom: 20px;"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+
+											<button style="width: 70px; height: 40px; margin-bottom: 60px; color: white; background-color: #5175df; border-radius: 20px; border: 1px;" onclick="icon_click()">검색</button>
+
+
+										</div>
+									</form>
+
+								</div>
+								<br />
+							</div>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-sm-12">
+							<table class="table table-bordered dataTable" id="dataTable" width="100%" cellspacing="0" role="grid" aria-describedby="dataTable_info" style="width: 100%;">
+								<thead>
+									<tr role="row">
+										<th class="sorting sorting_asc" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1" aria-sort="ascending" aria-label="Name: activate to sort column descending" style="width: 88px;">제목</th>
+										<th class="sorting sorting_asc" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1" aria-sort="ascending" aria-label="Name: activate to sort column descending" style="width: 88px;">내용</th>
+										<th class="sorting sorting_asc" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1" aria-sort="ascending" aria-label="Name: activate to sort column descending" style="width: 88px;">보고자</th>
+										<th class="sorting sorting_asc" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1" aria-sort="ascending" aria-label="Name: activate to sort column descending" style="width: 88px;">구분번호</th>
+
+
+									</tr>
+								</thead>
+
+								<tbody>
+									<c:forEach var="list" items="${list}">
+										<tr>
+											<c:if test="${empVo.empno == list.rspnberEmpno}">
+											<td>
+												<a href="/bogo/detail?reprtNo=${list.reprtNo}" ><span style="color: black;">${list.sj}</span></a>
+											</td>											
+											</c:if>
+											<c:if test="${empVo.empno != list.rspnberEmpno}" >
+											<td>
+												<a href="/bogo/detail?reprtNo=${list.reprtNo}"  onclick="alert('책임자만 열람 가능합니다.');return false;"><span style="color: black;">${list.sj}</span></a>
+											</td>											
+											</c:if>
+											<c:if test="${empVo.empno == list.rspnberEmpno}">
+											<td>
+												<a href="/bogo/detail?reprtNo=${list.reprtNo}"><span style="color: black;">${list.cn}</span></a>
+											</td>
+											</c:if>
+											<c:if test="${empVo.empno != list.rspnberEmpno}">
+											<td>
+												<a href="/bogo/detail?reprtNo=${list.reprtNo}"  onclick="alert('책임자만 열람 가능합니다.');return false;"><span style="color: black;">${list.cn}</span></a>
+											</td>
+											</c:if>
+											<td>${list.reportrNm}</td>
+											<td>${list.reprtListNo}</td>
+										</tr>
+									</c:forEach>
+								</tbody>
+							</table>
+						</div>
+					</div>
+					<button style="width: 100px; height: 50px; float: right; color: white; background-color: #5175df; border-radius: 10px; border: 1px;" type="button" onclick="javascript:location.href='/bogo/insert'">보고서 등록</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+</html>

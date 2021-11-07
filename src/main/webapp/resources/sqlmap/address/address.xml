@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.address.mapper.AddressMapper">
+
+	<!-- 전체조회 -->
+	<select id="addressList" parameterType="addressVo" resultType="addressVo">
+		select a.adres_no ,a.adbk_no ,a.empno ,a.nm ,a.middle_nm
+		,a.ncnm
+		,a.cmpny ,a.ofcps ,a.adres || a.adres_detail as adres ,a.email ,a.telno
+		,a.cmpny_telno ,a.cmpny_adres ,a.file_nm ,a.file_cours
+		,a.file_orginl_nm ,b.adbk_nm
+		from
+		tb_adres a, tb_adbk b
+	</select>
+	<select id="addressShareList" parameterType="addressVo" resultType="addressVo">
+		select nm, telno, email, ADRES || adres_detail as adres
+		from TB_EMPL
+		where empno != #{empno}
+	</select>
+
+	<insert id="addressinsert" parameterType="addressVo">
+		<selectKey order="BEFORE" keyProperty="adresNo"
+			resultType="int">
+			SELECT NVL(MAX(adres_no), 0) + 1 FROM tb_adres
+		</selectKey>
+		INSERT INTO tb_adres (
+		adres_no,
+		adbk_no,
+		empno,
+		nm,
+		cmpny,                                                                                  
+		ofcps,                                                                                  
+		adres,                                                                                 
+		adres_detail,                                                                           
+		email,                                                                                  
+		telno,                                                                                  
+		cmpny_telno,                                                                            
+		cmpny_adres                                                                             
+		) VALUES (                                                                              
+		#{adresNo},                                                                             
+		'',                                                                                     
+		#{empno},                                                                               
+		#{nm},                                                                                  
+		#{cmpny},                                                                                
+		#{ofcps},                                                                                
+		#{adres},                                                                                
+		#{adresDetail},
+		#{email},
+		#{telno},
+		#{cmpnyTelno},
+		#{cmpnyAdres}
+		)
+
+	</insert>
+	<select id="addressupdateselect" parameterType="int" resultType="addressVo">
+		SELECT
+		    adres_no,
+		    adbk_no,
+			empno,
+			nm,
+			cmpny,                                                                                  
+			ofcps,                                                                                  
+			adres,                                                                                 
+			adres_detail,                                                                           
+			email,                                                                                  
+			telno,                                                                                  
+			cmpny_telno,                                                                            
+			cmpny_adres
+		FROM
+		    tb_adres
+		where adres_no = #{adresNo}
+	
+	</select>
+	<update id="addressupdate" parameterType="addressVo">
+		UPDATE tb_adres
+		SET
+		nm = #{nm}
+		,cmpny = #{cmpny}
+		,ofcps = #{ofcps}
+		,adres = #{adres}
+		,adres_detail = #{adresDetail}
+		,email = #{email}
+		,telno = #{telno}
+		,cmpny_telno = #{cmpnyTelno}
+		,cmpny_adres = #{cmpnyAdres}
+		where adres_no = #{adresNo}
+	</update>
+
+<delete id="addressdelete" parameterType="addressVo">
+	delete from tb_adres
+	where adres_no = to_number(#{adresNo})
+</delete>
+
+
+</mapper>

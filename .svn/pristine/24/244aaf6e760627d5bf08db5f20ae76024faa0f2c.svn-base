@@ -1,0 +1,36 @@
+package kr.or.ddit.bogo.service;
+
+import java.util.List;
+import java.util.Map;
+
+import kr.or.ddit.bogo.vo.BogoVo;
+
+public interface BogoService {
+
+	
+
+	public int bogoInsert(BogoVo bogoVo);
+
+	public BogoVo bogoDetail(String reprtNo);
+
+	public int selectCount();
+
+	public int bogoDelete(String reprtNo);
+
+	public int bogoAdd(BogoVo bogoVo);
+
+	public List<BogoVo> bogoList(Map<String, Object> map) throws Exception;
+
+	public int bogoTotal(Map<String, Object> map);
+	//고객정보 수정(이미지 변경 안함)
+	public int bogoUpdate(BogoVo bogoVo) throws Exception;
+
+	//고객(CUS)정보 변경(고객의 이미지 포함)
+	public int updateWithImage(BogoVo bogoVo) throws Exception;
+
+	public int selectCountBogo(String reprtNo);
+
+	List<BogoVo> bogoMenuList(Map<String, Object> map) throws Exception;
+
+
+}

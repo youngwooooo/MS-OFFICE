@@ -1,0 +1,51 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.alarm.mapper.AlarmMapper">
+	<!-- 알람 등록 -->
+	<insert id="createAlarm" parameterType="alarmVO">
+		INSERT
+			INTO
+			TB_NEW
+		(NEW_NO
+			, NEW_EMPNO
+			, NEW_CN
+			, WRTING_DT
+			, NEW_AT
+			, DOC_NO
+			, DOC_CATEGORY)
+		VALUES((SELECT NVL(MAX(NEW_NO), 0)+1 AS newNo FROM TB_NEW)
+		, #{newEmpno}
+		, #{newCn}
+		, SYSDATE
+		, 'N'
+		, #{docNo}
+		, #{docCategory})
+	</insert>
+	
+	<!-- 로그인 세션에 따른 알람 조회 -->
+	<select id="getAlarmList" parameterType="String" resultType="alarmVO">
+		SELECT
+			NEW_NO
+			, NEW_EMPNO
+			, NEW_CN
+			, TO_CHAR(WRTING_DT, 'YYYY-MM-dd HH24:MI') AS WRTING_DT
+			, NEW_AT
+			, DOC_NO
+			, DOC_CATEGORY
+		FROM
+			TB_NEW
+		WHERE NEW_EMPNO = #{empno}
+		AND NEW_AT = 'N'
+		ORDER BY WRTING_DT DESC
+	</select>
+	
+	<!-- 알람 확인 여부 업데이트 -->
+	<update id="editNewAt" parameterType="int">
+		UPDATE
+			TB_NEW
+		SET
+			NEW_AT = 'Y'
+		WHERE
+			NEW_NO = #{newNo}
+	</update>
+	
+</mapper>

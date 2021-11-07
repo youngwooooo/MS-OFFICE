@@ -1,0 +1,136 @@
+package kr.or.ddit.bogo.controller;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import kr.or.ddit.bogo.service.BogoService;
+import kr.or.ddit.bogo.vo.BogoVo;
+import kr.or.ddit.login.vo.EmpVO;
+import lombok.extern.slf4j.Slf4j;
+
+@RequestMapping(value="/bogo/*")
+@Slf4j
+@Controller
+public class BogoController {
+	private static Logger logger = LoggerFactory.getLogger(BogoController.class);
+	
+	
+	
+	@Autowired
+	BogoService bogoService;
+	
+	@RequestMapping(value = "/list", method=RequestMethod.GET)
+	public String bogoList(@RequestParam Map<String,Object> map
+			, Model model)
+			 throws Exception{
+//	
+		
+		//고객 목록
+		List<BogoVo> list = this.bogoService.bogoList(map);
+		
+		
+		
+		
+		
+		model.addAttribute("list", list);
+	
+		return "bogo/bogoList";
+	}
+	
+	
+	@RequestMapping(value = "/insert", method = RequestMethod.GET)
+	public String bogoInsert() {
+		//forwarding
+		return "bogo/bogoInsert";
+	}
+	
+	@RequestMapping(value = "/add", method = RequestMethod.GET)
+	public String bogoAdd() {
+		//forwarding
+		return "bogo/bogoAdd";
+	}
+	
+	
+	@RequestMapping(value = "/home", method = RequestMethod.GET)
+	public String bogohome(@RequestParam Map<String,Object> map
+			, Model model) throws Exception {
+		
+		for(Entry<String, Object> entry : map.entrySet()) {
+			logger.info(entry.getKey());
+			logger.info(entry.getValue() + "");
+		}
+		
+		logger.info("home");
+		
+		//고객 목록
+		
+		List<BogoVo> menu = this.bogoService.bogoMenuList(map);
+		List<BogoVo> list = this.bogoService.bogoList(map);
+				
+		model.addAttribute("list", list);
+		model.addAttribute("list", menu);
+			
+		logger.info("뭐가 문제임?");
+		//forwarding
+		return "bogo/bogoHome";
+	}
+	
+	
+	
+	@RequestMapping(value = "/insert", method = RequestMethod.POST)
+	public String insertPost(@RequestParam Map<String,Object> map ,@ModelAttribute BogoVo bogoVo, @ModelAttribute EmpVO empVo ,Model model) throws Exception {
+//		int cusNum = this.cusService.insert(cusVo);
+
+		logger.info("보고 파라미터 : " + bogoVo);
+		int result = bogoService.bogoInsert(bogoVo);
+		logger.info("보고 insert : " + result);
+		List<BogoVo> menu = this.bogoService.bogoList(map);
+		List<BogoVo> list = this.bogoService.bogoMenuList(map);
+		
+		
+		model.addAttribute("list", list);
+		model.addAttribute("list", menu);
+        
+		return "redirect:/bogo/home";
+	}
+	@RequestMapping(value = "/add", method = RequestMethod.POST)
+	public String addPost(@RequestParam Map<String,Object> map ,@ModelAttribute BogoVo bogoVo , Model model) throws Exception {
+		
+		
+		logger.info("보고 파라미터 : " + bogoVo);
+		int result = bogoService.bogoAdd(bogoVo);
+		logger.info("보고 insert : " + result);
+		List<BogoVo> menu = this.bogoService.bogoList(map);
+		List<BogoVo> list = this.bogoService.bogoMenuList(map);
+		model.addAttribute("list", menu);
+		model.addAttribute("list", list);
+		return "redirect:/bogo/home";
+	
+	}
+	
+	//고객(CUS) 상세 정보 
+	//RequestParam어노테이션의 value : 넘어오는 파라미터의 name값
+	//required=false : cusNum 파라미터가 반드시 있을 필요는 없음(true가 기본. 생략 시 true)
+	//defaultValue : 기본값 세팅
+	@RequestMapping(value="/detail",method=RequestMethod.GET)
+	public String bogodetail() throws Exception {
+		
+	
+		
+		//forwarding
+		return "bogo/bogoDetail";
+	}
+	
+	
+}

@@ -1,0 +1,41 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.ehr.mapper.EhrMapper">
+	<!-- 
+	collection : parameterType으로 넘어온 list
+	item : collection을 사용할 변수
+	seperator : 반복 되는 요소에 추가할 문자열
+	 -->
+	<insert id="insert" parameterType="ehrVo">
+      INSERT INTO TB_WORK(EMPNO, TM, RCORD_CODE)
+      VALUES(
+      #{empNo}
+      ,(select To_date((TO_CHAR(SYSDATE, 'YYYY-MM-DD') || #{tm3}), 'YYYY-MM-DD HH24:MI:SS') TODAY0
+		from dual)
+      ,#{rcordCode}
+      )
+	</insert>
+
+	<insert id="total" parameterType="ehrVo">
+      INSERT INTO TB_WORK(EMPNO,TM, RCORD_CODE, WORK_ACCMLT_TM)
+      VALUES(
+	      #{empNo}
+	      ,TO_DATE(TO_CHAR(SYSDATE)|| '23:59:59', 'YYYY-MM-DD HH24:MI:SS')
+	      ,'D103'
+	      ,#{workAccmltTm}
+      )
+	</insert>
+	
+	<select id="select" parameterType="ehrVo" resultType="ehrVo">
+	SELECT
+		empno emp_no,
+		tm,
+		rcord_code,
+		work_accmlt_tm,
+		change_hist
+	FROM
+		tb_work
+	WHERE TM > TO_DATE(TO_CHAR(SYSDATE, 'YYYY-MM-DD'), 'YYYY-MM-DD HH24:MI:SS')
+	AND empno = #{empNo}
+	order by tm asc 
+	</select>
+</mapper>

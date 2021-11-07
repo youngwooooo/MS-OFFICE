@@ -1,0 +1,49 @@
+package kr.or.ddit.survey.controller;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import lombok.extern.slf4j.Slf4j;
+
+@RequestMapping("/survey")
+@Slf4j
+@Controller
+public class SurveyController {
+	
+	@GetMapping("/home")
+	public String surveyHome() {
+		return "survey/surveyHome";
+	}
+	
+	@GetMapping("/create")
+	public String surveyCreate() {
+		return "survey/surveyCreate";
+	}
+	
+	@PostMapping("/create")
+	public String surveyCreatePost() {
+		return "survey/surveyCreate";
+	}
+	
+	@GetMapping("/detail")
+	public String surveyDetail() {
+		return "survey/surveyDetail";
+	}
+	
+	@GetMapping("/run")
+	public String surveyRun() {
+		return "survey/surveyRun";
+	}
+	
+	@GetMapping("/done")
+	public String surveyDone() {
+		return "survey/surveyDone";
+	}
+	
+	@GetMapping("/save")
+	public String surveySave() {
+		return "survey/surveySave";
+	}
+}

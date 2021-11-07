@@ -1,0 +1,127 @@
+package kr.or.ddit.todo.service.impl;
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import kr.or.ddit.todo.mapper.TodoMapper;
+import kr.or.ddit.todo.service.TodoService;
+import kr.or.ddit.todo.vo.TodoVO;
+
+@Service
+public class TodoServiceImpl implements TodoService{
+	
+	@Autowired
+	TodoMapper tm;
+
+	@Override
+	public List<TodoVO> boardAllList() {
+		return tm.boardAllList();
+	}
+
+	@Override
+	public List<TodoVO> boardCocnrAllList() {
+		return tm.boardCocnrAllList();
+	}
+	
+	// 보드 생성
+	@Override
+	public int createBoard(TodoVO todoVO) {
+		int result = tm.createBoard(todoVO);
+		// 보드 생성이 성공하면
+		if(result > 0) {
+			// 보드 공유자를 추가
+			for(int i=0; i<todoVO.getCocnrEmpnoArr().size(); i++) {
+				int cocnrEmpno = todoVO.getCocnrEmpnoArr().get(i);
+				todoVO.setCocnrEmpno(cocnrEmpno);
+				// System.out.println(todoVO.toString());
+				tm.addBoardCocnr(todoVO);
+			}
+		}
+		
+		return result;
+	}
+	
+	// 보드 공유자 추가
+	@Override
+	public int addBoardCocnr(TodoVO todoVO) {
+		return tm.addBoardCocnr(todoVO);
+	}
+	
+	// 즐겨찾기 여부 업데이트
+	@Override
+	public int updateBkmk(Map<String, Object> map) {
+		return tm.updateBkmk(map);
+	}
+	
+	// 보드 상세 조회(보드 정보)
+	@Override
+	public TodoVO detailBoard(int boardNo) {
+		return tm.detailBoard(boardNo);
+	}
+
+	// 보드 상세 조회(보드 공유자 정보)
+	@Override
+	public List<TodoVO> detailBoardCocnr(int boardNo) {
+		return tm.detailBoardCocnr(boardNo);
+	}
+	
+	// 카드 메뉴 생성
+	@Override
+	public int createCardMenu(TodoVO todoVO) {
+		int result = tm.createCardMenu(todoVO);
+		if(result > 0) {
+			int CreatedCardMenuNo = todoVO.getCardMenuNo();
+			return CreatedCardMenuNo;
+		}
+		return 0;
+	}
+	
+	// 생성된 카드 메뉴 조회
+	@Override
+	public TodoVO createdCardMenuInfo(int cardMenuNo) {
+		return tm.createdCardMenuInfo(cardMenuNo);
+	}
+	
+	// 카드 메뉴 조회
+	@Override
+	public List<TodoVO> cardMenuList() {
+		return tm.cardMenuList();
+	}
+	
+	// 카드 조회
+	@Override
+	public List<TodoVO> cardList() {
+		return tm.cardList();
+	}
+	
+	// 카드 생성
+	@Override
+	public int createCard(TodoVO todoVO) {
+		int result = tm.createCard(todoVO);
+		if(result > 0) {
+			int createdCardNo = todoVO.getCardNo();
+			return createdCardNo;
+		}
+		return 0;
+	}
+
+	@Override
+	public TodoVO createdCardInfo(int cardNo) {
+		return tm.createdCardInfo(cardNo);
+	}
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+}

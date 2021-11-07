@@ -1,0 +1,111 @@
+package kr.or.ddit.ehr.controller;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+
+import org.springframework.beans.factory.annotation.Autowired;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import kr.or.ddit.ehr.service.EhrService;
+import kr.or.ddit.ehr.vo.EhrVO;
+import kr.or.ddit.login.service.LoginService;
+import kr.or.ddit.login.vo.EmpVO;
+
+@RequestMapping("/ehr")
+@Controller
+public class EhrController {
+	
+	private Logger logger = LoggerFactory.getLogger(this.getClass());
+
+	@Autowired
+	private EhrService ehrService;
+	
+	@RequestMapping("/content")
+	public String home(HttpServletRequest request, Model model) {
+		
+		HttpSession session = request.getSession();
+		
+		String empNo = "0";
+		if(session.getAttribute("empVo") != null) {
+			EmpVO empVo = (EmpVO) session.getAttribute("empVo");
+			empNo = empVo.getEmpno();
+		}
+		
+		//logger.info(empNo);
+		
+		EhrVO ehrVo = new EhrVO();
+		ehrVo.setEmpNo(Integer.parseInt(empNo));
+		List<EhrVO> timeList = ehrService.time(ehrVo);
+		model.addAttribute("timeList", timeList);
+		
+		//logger.info(timeList.get(0).getEmpNo()+"");
+		//logger.info(timeList.get(0).getTm());
+		//logger.info(timeList.get(0).getRcordCode());
+		
+		return "ehr/content";
+	}
+	
+	@RequestMapping(value="/insert", method=RequestMethod.POST)
+	@ResponseBody
+	public int insert(@ModelAttribute EhrVO ev) {
+		int result = ehrService.insert(ev);
+		System.out.println(result);
+		return result ;
+	}
+	
+	@RequestMapping("/test")
+	public String test() {
+		
+		
+		
+		return "ehr/test";
+	}
+	
+	@RequestMapping("/vacation")
+	public String vacation() {
+		
+		return "ehr/vacation";
+	}
+
+	@RequestMapping("/info")
+	public String info() {
+		
+		return "ehr/info";
+	}
+	
+	@RequestMapping(value="/time", method=RequestMethod.POST)
+	public String time(@ModelAttribute EhrVO ev, HttpServletRequest request) {
+		
+		List<EhrVO> ev2 = this.ehrService.time(ev);
+		
+		HttpSession session = request.getSession();
+		session.setAttribute("ev", ev2);
+		
+		return "redirect:/ehr/content";
+	}
+
+	@RequestMapping(value="/total", method=RequestMethod.POST)
+	public String total(@ModelAttribute EhrVO ev, HttpServletRequest request) {
+		
+		HttpSession session = request.getSession();
+		
+		int ev2 = this.ehrService.total(ev);
+
+		session.setAttribute("ev", ev2);
+		
+		return "ehr/content";
+		
+	}
+}

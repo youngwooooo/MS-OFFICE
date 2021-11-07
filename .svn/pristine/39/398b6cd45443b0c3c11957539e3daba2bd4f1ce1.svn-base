@@ -1,0 +1,520 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<!-- 공통 css -->
+<link href="/resources/css/common/common.css" rel="stylesheet">
+<!-- 공통 js -->
+<script src="/resources/js/common/common.js"></script>
+<style>
+	/* 설문 작성 css*/
+	.surveyCreateTitle, .surveyCreate-step1, .divSurveyBtn {padding: 20px 20px 20px 10px;}
+	.menu-name h3, .surveyCreateTitle h3 {font-size: 1.5rem;}
+	
+	.surveyCreate-step1 {border-top: 1px solid #dddddd; border-bottom: 1px solid #dddddd;}
+	.surveyCreate-step1 .table, .table input {font-size: 0.9rem;}
+	.surveyCreate-step1 .table th {font-weight: bold; border-color: white;}
+	.surveyCreate-step1 .table .th {padding-top: 20px; }
+	.surveyCreate-step1 .table td {border-color: white;}
+	.surveyCreate-step1 .table .surveyDateSelect {display: flex;}
+	.surveyCreate-step1 .table .surveyDateSelect span {padding: 5px 10px 0px 10px;}
+	.surveyCreate-step1 .table .surveyDateSelect input {width: 20%;}
+	.surveyCreate-step1 .table label {margin-right: 15px; margin-left: 5px; font-weight: normal;}
+	.surveyCreate-step1 .table .surveyMemberSelectList {padding: 10px; border: 1px dashed #dddddd; display: none;}
+	.surveyCreate-step1 .table .surveyMemberSelectList #btnSurveyMemberAdd {border: 1px solid #55beff; background-color: #55beff; color: white;}
+	.surveyCreate-step1 .table .desc {color: #888; font-size: 12px;}
+	.surveyCreate-step1 .table textarea {width: 100%;}
+	
+	.surveyCreate-step1 .surveyAttachFile {padding-top: 10px; padding-bottom: 10px;}
+	.surveyCreate-step1 .surveyAttachFile label {margin: 0px;}
+	.surveyCreate-step1 .surveyAttachFile span, .divQuestion .divAddExam span {border: 1px solid #55beff; background-color: #55beff; color: white; padding: 5px;}
+	.surveyCreate-step1 .surveyAttachFile span:hover, .divQuestion .divAddExam span:hover {border-color: #009dff; background-color: #009dff; cursor: pointer;}
+	.surveyCreate-step1 .surveyAttachedFile {border:1px dashed #dddddd; min-height: 60px;}
+	.surveyCreate-step1 .surveyAttachedFile p {padding: 5px 10px 5px 10px; margin-bottom: 0px;}
+	
+	.divAddQuestionResultList {border-bottom: 1px solid #dddddd; padding: 20px 10px 20px 10px;}
+	.divAddQuestionResultList span {font-weight: bold;}
+	.divAddQuestionResultList ul {list-style: none; margin-bottom: 0px; margin-top: 10px;}
+	.divAddQuestionResultList label {font-weight: normal !important; font-size: 0.9rem;}
+	.divAddQuestionResultList .addQuestionResultUD {float: right; margin-left: 15px; margin-right: 15px; padding: 5px;}
+	.divAddQuestionResultList .addQuestionResultUD:hover {cursor: pointer; background-color: #dddddd;} 
+	
+	.divQuestion .table, .table input {font-size: 0.9rem;}
+	.divQuestion .table th {font-weight: bold; border-color: white; padding-top: 20px;}
+	.divQuestion .table td {border-color: white;}
+	.divQuestion .table label {margin-right: 15px; margin-left: 5px; font-weight: normal;}
+	
+	.divAddQuestion {padding: 30px; text-align: center;}
+	.divAddQuestion #btnAddQuestion {border: 1px solid #dddddd; width: 35%; height: 45px; font-size: 0.9rem;}
+	
+	.divQuestion {padding: 20px; border-bottom: 1px solid #dddddd;}
+	.divQuestion .table .divSelect {float: left; margin-right: 10px;}
+	.divQuestion .table .divSelect select {font-size: 0.9rem;}
+	.divQuestion .divAddExam {padding-top: 10px;}
+	.divQuestion .addedExam {display: flex; margin-top: 15px;}
+	.question-check, .question-radio {margin-right: 5px;}
+	.divQuestion .addedExam input {height: 30px;}
+	.divQuestion .addedExam span {padding-left: 10px; padding-top: 5px; cursor: pointer;}
+	
+	.divQuestionBtn {text-align: center; padding: 10px;}
+	
+	.divSurveyBtn {text-align: center;}
+	.divSurveyBtn button, .divQuestionBtn button {border: 1px solid #dddddd; margin-right: 10px; width: 100px; font-size: 0.9rem;}
+	.divSurveyBtn #btnSurveyCreate, .divQuestionBtn #btnQuestionCreate {border-color: #55beff; background-color: #55beff; color: white;}
+	.divSurveyBtn #btnSurveyCreate:hover, .divQuestionBtn #btnQuestionCreate:hover {background-color: #009dff; border-color: #009dff;}
+	.divSurveyBtn #btnSurveyPrev:hover, #btnSurveySave:hover, .divAddQuestion #btnAddQuestion:hover {background-color: #dddddd;}
+	
+</style>
+<script type="text/javascript">
+	$(function(){
+		// '직접 선택 radio' 체크 시, [+ 추가] 보이기
+		$("input:radio").on("change", function(){
+			if($("#surveyMemberSelect").prop("checked") == true){
+				$(".surveyMemberSelectList").css("display", "block");
+			}else{
+				$(".surveyMemberSelectList").css("display", "none");
+			}
+		});
+		
+		// 설문 validate
+		$("#btnSurveyCreate").on("click", function(){
+			var surveyTitle = $("input[name='surveyTitle']");			// 설문 제목
+			var surveyStartDate = $("input[name='surveyStartDate']");	// 설문 시작일
+			var surveyEndDate = $("input[name='surveyEndDate']");		// 설문 종료일
+			var questionTitle = $("input[name='questionTitle']");		// [문항 추가] - 질문 제목
+			var examContent = $("input[name='examContent']");		// [문항 추가] - [+ 보기] - 보기 내용
+			
+			var select1TypeVal = $("#select1").val();					// 선택한 select1 option 값(0, 1)
+			var select1TypeName1 = $("#select1 option").eq(0).text();	// "선택형"
+			
+			// 설문 제목 체크
+			if(fn_isEmpty(surveyTitle.val())){
+				alert("설문 제목을 입력하세요.");
+				surveyTitle.focus();
+				return false;
+			}
+			// 설문 기간 체크
+			if(fn_isEmpty(surveyStartDate.val())){
+				alert("설문 시작일을 선택하세요.");
+				surveyStartDate.focus();
+				return false;
+			}
+			if(fn_isEmpty(surveyEndDate.val())){
+				alert("설문 종료일 입력하세요.");
+				surveyEndDate.focus();
+				return false;
+			}
+			// 문항 존재 여부 체크
+			if($(".divQuestion").length == 0){
+				alert("문항을 추가 해주세요.");
+				return false;
+			}else{	// 문항이 존재하면..
+				// 질문 빈 값 체크
+				if(fn_isEmpty(questionTitle.val())){
+					alert("질문을 입력하세요.");
+					questionTitle.focus();
+					return false;
+				}
+				// '선택형'일 때만 보기 체크
+				if(select1TypeVal == "0" && select1TypeName1 == "선택형"){
+					// 보기 존재 여부 체크
+					if($(".addedExam").length == 0){
+						alert("보기를 추가 해주세요.");
+						return false;
+					}else{	// 보기가 존재하면..
+						// 보기 내용 빈 값 체크
+						if(fn_isEmpty(examContent.val())){
+							alert("보기 내용을 입력하세요.");
+							examContent.focus();
+							return false;
+						}
+					}
+				}
+			}
+			if($(".divAddQuestionResultList").length == 0){
+				alert("문항을 완료 해주세요.")
+				return false;
+			}
+			
+			$("#frm").submit();
+			$(".divQuestion").remove();
+			
+		});
+		
+		// '+ 파일' 클릭 시, 파일 이름(파일 크기) 보이기
+		$("#file").on('change',function(){
+			var fileName = $("#file").val();
+			var fileSize = $("#file")[0].files[0].size;
+			var str = '<p><span><i class="fas fa-file mr-2"></i></span>'+ fileName +'<span>('+ fileSizePrint(fileSize) +')<span><span onclick=""><i class="fas fa-times ml-2"></i></span></p>';
+			$(".surveyAttachedFile").append(str);
+		});
+		
+		// [문항추가] 클릭 시, 문항 추가하기
+		$("#btnAddQuestion").on("click", function(){
+			var str = '<div class="divQuestion">'
+					+	'<table class="table">'
+					+	'<colgroup>'
+					+		'<col width="150px">'
+					+		'<col width="auto">'
+					+	'</colgroup>'
+					+	'<tbody>'
+					+		'<tr>'
+					+			'<th>질문</th>'
+					+			'<td><input type="text" class="form-control" name="questionTitle"></td>'
+					+		'</tr>'
+					+		'<tr>'
+					+			'<th>설문 문항 타입</th>'
+					+			'<td>'
+					+				'<div class="divSelect">'
+					+					'<select class="form-control" id="select1" name="" onchange="fn_select1Change(this)">'
+					+						'<option value="0">선택형</option>'
+					+						'<option value="1">점수형</option>'
+					+					'</select>'
+					+				'</div>'
+					+				'<div class="divSelect">'
+					+					'<select class="form-control" id="select2" name="" onchange="fn_emptyAddedExam(this)">'
+					+						'<option value="0">단일</option>'
+					+						'<option value="1">복수</option>'
+					+					'</select>'
+					+				'</div>'
+					+			'</td>'
+					+		'</tr>'
+					+		'<tr id="exam">' 
+					+			'<th>보기</th>'
+					+			'<td class="thExam">'
+					+				'<div class="divAddExam">'
+					+					'<span onclick="fn_addExam(this)"><i class="fas fa-plus mr-2"></i>보기</span>'
+					+				'</div>'
+					+			'</td>'
+					+		'</tr>'
+					+	'</tbody>'
+					+ '</table>'
+					+'<div class="divQuestionBtn">'
+					+	'<button id="btnQuestionCreate" type="button" class="btn" onclick="fn_questionCreate(this)">완료</button>'
+					+	'<button id="btnQuestionCancel" type="button" class="btn" onclick="fn_questionCancel(this)">취소</button>'
+					+'</div>'
+				    +'</div>';
+					
+			$("#frm").append(str);
+					
+		});
+		
+	});	// jquery end
+	
+	
+	// 빈 값 체크하는 함수
+	function fn_isEmpty(value){
+		if( value == "" || value == null || value == undefined || ( value != null && typeof value == "object" && !Object.keys(value).length) ){ 
+		    return true;
+		} else { 
+		    return false; 	
+		}
+	}
+	
+	// 파일 크기 포맷팅
+	function fileSizePrint(fileSize){
+	     var size = "";
+	     if (fileSize < 1024){
+	    	 size = fileSize + "B";
+	     }else if (fileSize < 1024 * 1024){
+	    	 size = parseInt (fileSize / 1024) + "KB";
+	     }else if (fileSize < 1024 * 1024 * 1024){
+	    	 size = parseInt (fileSize / (1024 * 1024)) + "M";
+	     }else size = parseInt (fileSize / (1024 * 1024 * 1024)) + "G";
+	     
+	     return size;
+	}
+	
+	// [문항추가] - [취소] 클릭 시, 문항 삭제
+	function fn_questionCancel(obj){
+		$(obj).parents(".divQuestion").remove();
+	}
+	
+	// [+ 보기] 클릭 시, 보기 추가
+	function fn_addExam(obj){
+		var single = '<div class="addedExam">'
+				+	'<input type="radio" class="question-radio">'
+				+	'<input type="text" class="form-control" name="examContent">'
+				+   '<span onclick="fn_addedExamCancel(this)"><i class="fas fa-times"></i></span>'
+				+ '</div>';
+				
+		var multiple = '<div class="addedExam">'
+				+	'<input type="checkbox" class="question-check">'
+				+	'<input type="text" class="form-control" name="examContent">'
+				+   '<span onclick="fn_addedExamCancel(this)"><i class="fas fa-times"></i></span>'
+				+ '</div>';
+						
+		if($("#select2").val() == "0"){
+			$(obj).parents(".thExam").append(single);	
+		}else if($("#select2").val() == "1"){
+			$(obj).parents(".thExam").append(multiple);
+		}
+
+		
+				
+	}
+	
+	// 보기 input의 'x' 클릭 시, 보기 삭제
+	function fn_addedExamCancel(obj){
+		$(obj).parents(".addedExam").remove();
+	}
+	
+	// select1 변경 시 select2도 변경
+	function fn_select1Change(obj){
+		var choiseType = ["단일", "복수"];
+		var pointType = ["5점", "10점"];
+		var target = document.getElementById("select2");
+
+		if(obj.value == "0"){
+			var option = choiseType;
+		}else if(obj.value == "1"){
+			var option = pointType;
+		}
+
+		target.options.length = 0;
+
+		for (idx in option) {
+			var opt = document.createElement("option");
+			if(obj.value == "0"){
+				opt.value = idx;
+				opt.innerHTML = option[idx];
+				target.appendChild(opt);
+				$("#exam").css("display", "table-row");
+			}else if(obj.value == "1"){
+				opt.value = idx;
+				opt.innerHTML = option[idx];
+				target.appendChild(opt);
+				$("#exam").css("display", "none");
+			}
+		}
+	}
+	
+	// '단일', '복수' 각각 선택 시, 보기 비우기
+	function fn_emptyAddedExam(obj){
+		$(".addedExam").remove();
+	}
+	
+	// 문항 결과 화면에 보이기
+	function fn_questionCreate(obj){
+		var questionTitle = $("input[name='questionTitle']");		// [문항 추가] - 질문 제목
+		var examContent = $("input[name='examContent']");		// [문항 추가] - [+ 보기] - 보기 내용
+		
+		var select1TypeVal = $("#select1").val();					// 선택한 select1 option 값(0, 1)
+		var select1TypeName1 = $("#select1 option").eq(0).text();	// "선택형"
+		var select1TypeName2 = $("#select1 option").eq(1).text();	// "점수형"
+		var select2ypeVal = $("#select2").val();					// 선택한 select2 option의 값(0, 1)
+		var select2ypeName1 = $("#select2 option").eq(0).text();	// "단일"
+		var select2ypeName2 = $("#select2 option").eq(1).text();	// "복수"
+		
+		// 질문 빈 값 체크
+		if(fn_isEmpty(questionTitle.val())){
+			alert("질문을 입력해주세요.");
+			questionTitle.focus();
+			return false;
+		}
+		//  '선택형'일 때만 보기 존재 여부 체크
+		if(select1TypeVal == "0" && select1TypeName1 == "선택형"){
+			if($(".addedExam").length == 0){
+				alert("보기를 추가해주세요.");
+				return false;
+			}else{	// 보기가 존재하면..
+				// 보기 내용 빈 값 체크
+				if(fn_isEmpty(examContent.val())){
+					alert("보기 내용을 입력해주세요.");
+					examContent.focus();
+					return false;
+				}
+			}
+		}
+		
+		var selectSimple = '<div class="divAddQuestionResultList">'
+				+		'<div class="divAddQuestionResultTitle">'
+				+			'<span>1.</span><span> 에이젝스로 넘어온 질문 제목 단일</span>'
+				+			'<span class="addQuestionResultUD" onclick="fn_addQuestionResultDelete(this)"><i class="far fa-trash-alt"></i></span>'
+				+ 			'<span class="addQuestionResultUD" onclick="fn_addQuestionResultEdit(this)"><i class="far fa-edit"></i></span>'
+				+		'</div>'
+				+		'<div class="divAddQuestionResult">'
+				+		'<ul>'
+				+			'<li>'
+				+				'<input type="radio" class="question-radio" id="radio1" name="question"><label for="radio1">보기내용 li부분 for문으로 돌리기</label>'
+				+			'</li>'
+				+		'</ul>'
+				+	'</div>'
+				+ '</div>';
+				
+		var selectMultiple = '<div class="divAddQuestionResultList">'
+				+		'<div class="divAddQuestionResultTitle">'
+				+			'<span>1.</span><span> 에이젝스로 넘어온 질문 제목 복수</span>'
+				+			'<span class="addQuestionResultUD" onclick="fn_addQuestionResultDelete(this)"><i class="far fa-trash-alt"></i></span>'
+				+ 			'<span class="addQuestionResultUD" onclick="fn_addQuestionResultEdit(this)"><i class="far fa-edit"></i></span>'
+				+		'</div>'
+				+		'<div class="divAddQuestionResult">'
+				+		'<ul>'
+				+			'<li>'
+				+				'<input type="checkbox" class="question-check" id="checkbox1" name=""><label for="checkbox1">보기내용 li부분 for문으로 돌리기</label>'
+				+			'</li>'
+				+		'</ul>'
+				+	'</div>'
+				+ '</div>';
+				
+			
+		if(select1TypeVal == "0" && select1TypeName1 == "선택형" && select2ypeVal == "0" && select2ypeName1 == "단일"){
+			$("#frm").append(selectSimple);
+		}
+		if(select1TypeVal == "0" && select1TypeName1 == "선택형" && select2ypeVal == "1" && select2ypeName2 == "복수"){
+			$("#frm").append(selectMultiple);			
+		}			
+		
+		$(obj).parents(".divQuestion").css("display", "none");
+	}
+	
+	// 문항 결과 수정
+	function fn_addQuestionResultEdit(obj){
+		$(obj).parents(".divAddQuestionResultList").css("display", "none");
+		$(".divQuestion").css("display", "block");
+	}
+	
+	// 문항 결과 삭제
+	function fn_addQuestionResultDelete(obj){
+		$(obj).parents(".divAddQuestionResultList").remove();
+	}
+	
+</script>
+<div id="body">
+	<div class="left-menu">
+		<div class="left-menu-list">
+			<div class="menu-name"><h3><a href="/survey/home">설문</a></h3></div>
+			<div class="menu-create">
+				<button id="btnCreate" type="button" class="btn btn-default" onclick="javascript:location.href='/survey/create'"><span>설문 작성</span></button>
+			</div>
+			<div class="menu-list">
+				<a href="#" class="toggle-menu-list"><i class="fas fa-angle-down mr-2"></i><strong>설문</strong></a>
+				<ul class="menu-list-ul">
+					<li>
+						<a href="/survey/run"><span>진행중인 설문</span></a>
+					</li>
+					<li>
+						<a href="/survey/done"><span>마감된 설문</span></a>
+					</li>
+					<li>
+						<a href="/survey/save"><span>내가 만든 설문</span></a>
+					</li>
+				</ul>
+			</div>
+		</div>
+	</div>
+	<div class="lefr-menu-list-content">
+		<div class="surveyCreateTitle">
+			<h3>설문 작성</h3>
+		</div>
+		<form id="frm" method="post" action="/survey/create">
+		<div class="surveyCreate-step1">
+			<table class="table">
+				<colgroup>
+					<col width="150px">
+					<col width="auto">
+				</colgroup>
+				<tbody>
+					<tr>
+						<th class="th"><span>설문 제목</span></th>
+						<td><input type="text" class="form-control" name="surveyTitle"></td>
+					</tr>
+					<tr>
+						<th class="th"><span>설문 기간</span></th>
+						<td class="surveyDateSelect">
+							<input type="date" class="form-control" name="surveyStartDate"><span>~</span><input type="date" class="form-control" name="surveyEndDate">
+						</td>
+					</tr>
+					<tr>
+						<th><span>설문 대상자</span></th>
+						<td>
+							<input type="radio" id="surveyMemberAllSelect" name="temp1" checked="checked">
+							<label for="surveyMAllSelect">MS그룹</label>
+							<input type="radio" id="surveyMemberSelect" name="temp1">
+							<label for="surveyMemberSelect">직접 선택</label>
+							<div class="surveyMemberSelectList">
+								<button type="button" id="btnSurveyMemberAdd"><i class="fas fa-plus mr-2"></i>추가</button>
+							</div>
+							<div class="desc">
+								<span>※ 'MS그룹' 선택 시, 하위 모든 부서까지 범위가 설정됩니다.</span>
+							</div>
+						</td>
+					</tr>
+					<tr>
+						<th><span>설문 결과 공개</span></th>
+						<td>
+							<input type="radio" id="surveyResultOpen" name="temp2" checked="checked">
+							<label for="surveyResultOpen">공개</label>
+							<input type="radio" id="surveyResultClose" name="temp2">
+							<label for="surveyResultClose">비공개</label>
+							<div class="desc">
+								<span>※ 설문 결과 공개 여부를 설정합니다.</span>
+							</div>
+						</td>
+					</tr>
+					<tr>
+						<th><span>댓글 작성</span></th>
+						<td>
+							<input type="radio" id="surveyCommentOpen" name="temp3" checked="checked">
+							<label for="surveyCommentOpen">사용</label>
+							<input type="radio" id="surveyCommentClose" name="temp3">
+							<label for="surveyCommentClose">사용안함</label>
+							<div class="desc">
+								<span>※ 설문에 댓글을 작성할 수 있는지 여부를 설정합니다.</span>
+							</div>
+						</td>
+					</tr>
+					<tr>
+						<th><span>참여 후 수정 허용</span></th>
+						<td>
+							<input type="radio" id="surveyEditOpen" name="temp" checked="checked">
+							<label for="surveyEditOpen">허용</label>
+							<input type="radio" id="surveyEditClose" name="temp">
+							<label for="surveyEditClose">허용안함</label>
+							<div class="desc">
+								<span>※ 설문 결과를 제출하고 수정할 수 있는지 여부를 설정합니다.</span>
+							</div>
+						</td>
+					</tr>
+					<tr>
+						<th class="th"><span>설문 안내 문구</span></th>
+						<td>
+							<textarea rows="5"></textarea>
+							<div class="surveyAttachFile">
+								<label for="file"><span><i class="fas fa-plus mr-2"></i>파일</span></label>
+								<input id="file" type="file" style="display: none;">
+							</div>
+							<div class="surveyAttachedFile">
+							</div>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+<!-- 		<div class="divAddQuestionResultList"> -->
+<!-- 			<div class="divAddQuestionResultTitle"> -->
+<!-- 				<span>1.</span><span> 질문제목</span><span class="divAddQuestionResultUD"><i class="far fa-trash-alt"></i></span><span class="divAddQuestionResultUD"><i class="far fa-edit"></i></span> -->
+<!-- 			</div> -->
+<!-- 			<div class="divAddQuestionResult"> -->
+<!-- 				<ul> -->
+<!-- 					<li> -->
+<!-- 						<input type="radio" class="question-radio" id="radio1" name="question"><label for="radio1">보기내용</label> -->
+<!-- 					</li> -->
+<!-- 					<li> -->
+<!-- 						<input type="radio" class="question-radio" id="radio2" name="question"><label for="radio2">보기내용</label> -->
+<!-- 					</li> -->
+<!-- 					<li> -->
+<!-- 						<input type="radio" class="question-radio" id="radio3" name="question"><label for="radio3">보기내용</label> -->
+<!-- 					</li> -->
+<!-- 				</ul> -->
+<!-- 			</div> -->
+<!-- 		</div> -->
+		</form>
+		<div class="divAddQuestion">
+			<button type="button" id="btnAddQuestion" class="btn">문항 추가</button>		
+		</div>
+		<div class="divSurveyBtn">
+			<button id="btnSurveyCreate" type="button" class="btn">작성완료</button>
+			<button id="btnSurveyPrev" type="button" class="btn">이전</button>
+			<button id="btnSurveySave" type="button" class="btn">임시저장</button>
+		</div>
+	</div>
+</div>

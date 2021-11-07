@@ -1,0 +1,19 @@
+package kr.or.ddit.calendar.mapper;
+
+import java.util.List;
+
+import org.apache.ibatis.annotations.Mapper;
+
+import kr.or.ddit.calendar.vo.CalendarVO;
+
+@Mapper
+public interface CalendarMapper {
+	// 모든 일정 목록 가져오기
+	List<CalendarVO> selectScheduleList(); 
+	//일정 수정
+	int editSchedule(CalendarVO calendarVO);
+	// 일정 삭제
+	int deleteSchedule(int schdulNo);
+	// 일정 등록
+	int createSchedule(CalendarVO calendarVO);
+}

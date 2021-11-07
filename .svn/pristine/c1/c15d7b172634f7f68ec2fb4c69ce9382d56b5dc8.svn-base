@@ -1,0 +1,355 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<style>
+	#body {background-color: #EEF1F6;}
+	.row {padding: 30px;}
+	.row .divProfile, .divWork, .divSimpleCommunity, .divSimpleMail, .divSimpleCalendar, .divSimpleSurvet {
+			background-color: white; border-radius: 10px; padding: 20px 20px 20px 20px; margin-bottom: 20px;
+		}
+	.row .title {font-weight: bold; font-size: 0.9rem;}
+	.row .table a {color: black;}
+		
+	.row .divProfile img {width: 50%;  max-width: 80px; min-height: 70px; margin: 0px 0px 10px 0px; border-radius: 50%;}
+	.row .divProfile p {margin-bottom: 0px;}
+	.row .divProfile p > span {font-weight: bold; font-size: 0.9rem; padding-left: 5px; color: black;}
+	.row .divProfile span {font-size: 0.8rem; color: #919191;}
+	
+	
+	.row .divWork p {margin: 0px; padding-top: 10px;}
+	.row .divWork .currentTime {font-size: 0.8rem; color: #888;}
+	.row .divWork h2 {display: inline;}
+	.row .divWork span {padding-right: 10px;}
+	.row .divWork .divWorkTime {padding-top: 5px;}
+	.row .divWork .divTotalWorkGraph {width: 100%; background-color: #EEF1F6; margin-top: 7px; height: 10px;}
+	.row .divWork .divTotalWorkGraph {width: 100%; background-color: #EEF1F6; margin-top: 7px; height: 10px;}
+	.row .divWork .divRunWorkGraph {background-color: #55beff; width: 0; height: 10px;}
+	.row .divWork .divStartWorkTime {margin-top: 30px;}
+	.row .divWork .divEndWorkTime {padding-bottom: 20px; border-bottom: 1px dashed #dddddd;}
+	.row .divWork .spWorkTimeName {font-size: 0.8rem; font-weight: bold;}
+	.row .divWork .spWorkTime {float: right;}
+	.row .divWork .divWorkBtn {margin-top: 20px;}
+	.row .divWork .divWorkBtn #btnStartWork {float: left; width: 49%; height: 43px; margin-bottom: 7px;}
+	.row .divWork .divWorkBtn #btnEndWork {float:right; width: 49%; height: 43px; margin-bottom: 7px;}
+	.row .divWork .divWorkBtn #btnStatusWork {clear: both; width: 100%;}
+	.row .divWork .dropdown-menu {width: 210px; text-align: center; padding: 0px; border: 2px solid #55beff;}
+	.row .divWork .dropdown-menu ul {margin: 0px; padding: 0px; list-style: none;}
+	.row .divWork .dropdown-menu li {margin-top: 5px; cursor: pointer; font-size: 0.9rem; height: 30px; padding-top: 5px;}
+	.row .divWork .dropdown-menu li:hover {background-color: #EEF1F6}
+	.row .divWork .btn {border: 2px solid #55beff; font-size: 0.8rem; color: black; border-radius: 20px;}
+	.row .divWork .btn:hover {background-color: #55beff; color: white; font-weight: bold;}
+	.row .divShortcuts .btn {background-color: white; font-size: 0.9rem; width: 46%; height: 50px; margin-left: 5px; margin-bottom: 7px; border: 1px solid white; border-radius: 20px;}
+	
+	.row .nav .nav-item .nav-link {font-size: 0.8rem; padding: 10px 15px 10px 15px; font-weight: bold; color: #b1afaf;}
+	.row .nav .nav-item .nav-link:hover {border-color: white; color: black;}
+	.row .nav .nav-item .nav-link.active {border-color: white; border-bottom: 4px solid #55beff; color: black;}
+	
+	.row .table tr {border-top: none; border-bottom: 1px solid #dee2e6;}
+	.row .divSimpleCommunity ul, .divSimpleMail ul {margin-top: 10px; border-bottom: 0px;}	
+	.row.divSimpleCommunity .table .community-board a {color: black; font-size: 0.9rem;}
+	.row .divSimpleCommunity .table .community-board span {color: #888; font-size: 0.8rem; margin-right: 5px;}
+	.row .divSimpleCommunity .table .community-board .community-boardWriter {font-size: 0.7rem;}
+	
+	.row .divSimpleMail .table td {font-size: 0.8rem;}
+	.row .divSimpleMail .table span {color: #888;}
+	
+	
+	.row .divSimpleSurvet .divSurvey {border: 1px solid #ddd; margin-top: 10px; width: 45%; border-radius: 8px; padding: 20px;}
+	.row .divSimpleSurvet .divSurvey header {padding-bottom: 15px;}
+	.row .divSimpleSurvet .divSurvey header .surveyCheckStatus {border: 1px solid #ff616b; background-color: #ff616b; color: white; font-size: 0.7rem; padding: 3px; font-weight: bold; border-radius: 3px;}
+	.row .divSimpleSurvet .divSurvey .surveyTitle {margin: 0px;}
+	.row .divSimpleSurvet .divSurvey .surveySubject {padding-bottom: 5px;}
+	.row .divSimpleSurvet .divSurvey .surveySubject span {font-size: 0.9rem; color: #888; padding-left: 3px;}
+	.row .divSimpleSurvet .divSurvey .surveyContent .table tr {border-color: white;}
+	.row .divSimpleSurvet .divSurvey .surveyContent .table td {border-color: white; font-size: 0.8rem; padding: 3px;}
+	.row .divSimpleSurvet .divSurvey .surveyContent .table td > span {color: #888;}
+	.row .divSimpleSurvet .divSurvey .divGoSurvey {text-align: center; border-top: 1px dashed #dddddd;}
+	.row .divSimpleSurvet .divSurvey .divGoSurvey #btnGoSurvey {border: 2px solid #55beff; font-size: 0.8rem; color: black; border-radius: 20px; width: 100%; margin-top: 20px; height: 50px;}
+	.row .divSimpleSurvet .divSurvey .divGoSurvey #btnGoSurvey:hover {background-color: #55beff; color: white; font-weight: bold;}
+	
+	/* 캘린더 css*/
+	
+</style>
+<script type="text/javascript">
+	$(function(){
+		fn_getFullTime();	 
+		fn_getTime();		
+		setInterval(fn_getFullTime, 1000);
+		setInterval(fn_getTime, 1000);
+		
+	});
+	
+	// 년/월/일/요일/시/분/초 구하기
+	function fn_getFullTime(){
+		// 현재 시각
+		var now = new Date();
+		
+		// 년/월/일/요일
+		var year = now.getFullYear();
+		var month = now.getMonth() + 1;
+		var date = now.getDate();
+		var dayInt = now.getDay();
+		
+		// 요일(숫자)을 요일(한글)로 바꾸기
+		var week = new Array("일요일", "월요일", "화요일", "수요일", "목요일", "금요일", "토요일");
+		var dayStr = week[dayInt]; // 일요일
+		var day = dayStr.substring(0, 1); // 일
+		
+		// 시/분/초
+		var hour = now.getHours();
+		var min = now.getMinutes();
+		var sec = now.getSeconds();
+		
+		if(month < 10){
+			month = "0" + month;
+		}
+		if(date < 10){
+			date = "0" + date;
+		}
+		if(hour < 10){
+			hour = "0" + hour;
+		}
+		if(min < 10){
+			min = "0" + min;	
+		}
+		if(sec < 10){
+			sec = "0" + sec;
+		}
+		
+		var currentTime = year + "년 " + month + "월 " + date + "일 " + "(" + day + ") " + hour + ":" + min + ":" + sec;
+		
+		$(".currentTime").text(currentTime);
+	}
+	
+	// 시/분/초만 구하기
+	function fn_getTime(){
+		var now = new Date();
+		
+		
+		// 시/분/초
+		var hour = now.getHours();
+		var min = now.getMinutes();
+		var sec = now.getSeconds();
+		
+		if(hour < 10){
+			hour = "0" + hour;
+		}
+		if(min < 10){
+			min = "0" + min;	
+		}
+		if(sec < 10){
+			sec = "0" + sec;
+		}
+		
+		var currentTime = hour + ":" + min + ":" + sec;
+		
+		$(".spWorkTime").text(currentTime);
+	}
+
+	document.addEventListener('DOMContentLoaded', function() {
+        var calendarEl = document.getElementById('calendar');
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+          initialView: 'dayGridMonth',
+          locale : 'ko'
+        });
+        calendar.render();
+      });
+	
+</script>
+<div id="body">
+	<div class="row">
+		<div class="col-sm-2">
+			<div class="divProfile" style="width: 100%; text-align: center;">
+				<img src="/resources/img/profile.png">
+				<p><span>이영우</span><span>대표이사</span></p>
+				<span>MS그룹</span>
+			</div>
+			<div class="divWork">
+				<div class="divWork-title">
+					<span class="title">근태관리</span>
+				</div>
+					<p><span class="currentTime"></span></p>
+				<div class="divWorkTime">
+					<h2>10</h2><span>h</span><h2>11</h2><span>mm</span>
+					<div class="divTotalWorkGraph">
+						<div class="divRunWorkGraph"></div>
+					</div>
+				</div>
+				<div class="divStartWorkTime"><span class="spWorkTimeName">출근시간</span><span class="spWorkTime"></span></div>
+				<div class="divEndWorkTime"><span class="spWorkTimeName">퇴근시간</span><span class="spWorkTime"></span></div>
+				<div class="divWorkBtn">
+					<button id="btnStartWork" type="button" class="btn">출근</button>
+					<button id="btnEndWork" type="button" class="btn">퇴근</button>
+					<button id="btnStatusWork" type="button" class="btn" data-toggle="dropdown">업무상태변경<i class="fas fa-caret-down fa-lg ml-2"></i></button>
+					<div class="dropdown-menu">
+						<ul>
+							<li>업무</li>
+							<li>업무</li>
+							<li>업무</li>
+							<li>업무</li>
+						</ul>
+					</div>
+				</div>
+			</div>
+			<div class="divShortcuts">
+				<button type="button" class="btn"><i class="fas fa-envelope fa-lg mr-2" style="color: #55beff"></i>메일쓰기</button>
+				<button type="button" class="btn"><i class="fas fa-calendar-check fa-lg mr-2" style="color: lightcoral"></i>일정등록</button>
+				<button type="button" class="btn" style="width: 95%;"><i class="fas fa-sms fa-lg mr-2" style="color: darkorange"></i>메신저</button>
+			</div>
+		</div>
+		<div class="col-sm-5">
+			<div class="divSimpleCommunity">
+				<span class="title">커뮤니티 최신글</span>
+				<ul class="nav nav-tabs">
+					<li class="nav-item">
+						<a class="nav-link active" data-toggle="tab" href="#community1">커뮤니티 이름1</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" data-toggle="tab" href="#community2">커뮤니티 이름2</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" data-toggle="tab" href="#community3">커뮤니티 이름3</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" data-toggle="tab" href="#community4">커뮤니티 이름4</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" data-toggle="tab" href="#community5">커뮤니티 이름5</a>
+					</li>
+				</ul>
+				<div class="tab-content">
+					<div class="tab-pane fade show active" id="community1">
+						<table class="table">
+							<tr>
+								<td class="community-board">
+									<a href="#">커뮤니티 최신 글</a>
+									<p style="margin: 0px;"><span>2021-09-02</span><span class="community-boardWriter">이영우</span></p>
+								</td>
+							</tr>
+							<tr>
+								<td class="community-board">
+									<a href="#">커뮤니티 최신 글</a>
+									<p style="margin: 0px;"><span>2021-09-02</span><span class="community-boardWriter">이영우</span></p>
+								</td>
+							</tr>
+							<tr>
+								<td class="community-board">
+									<a href="#">커뮤니티 최신 글</a>
+									<p style="margin: 0px;"><span>2021-09-02</span><span class="community-boardWriter">이영우</span></p>
+								</td>
+							</tr>
+							<tr>
+								<td class="community-board">
+									<a href="#">커뮤니티 최신 글</a>
+									<p style="margin: 0px;"><span>2021-09-02</span><span class="community-boardWriter">이영우</span></p>
+								</td>
+							</tr>
+							<tr>
+								<td class="community-board">
+									<a href="#">커뮤니티 최신 글</a>
+									<p style="margin: 0px;"><span>2021-09-02</span><span class="community-boardWriter">이영우</span></p>
+								</td>
+							</tr>
+						</table>
+					</div>
+					<div class="tab-pane fade" id="community2">
+					</div>
+					<div class="tab-pane fade" id="community3">
+					</div>
+					<div class="tab-pane fade" id="community4">
+					</div>
+					<div class="tab-pane fade" id="community5">
+					</div>
+				</div>
+			</div>
+			<div class="divSimpleMail">
+				<span class="title">메일함</span>
+				<ul class="nav nav-tabs">
+					<li class="nav-item">
+						<a class="nav-link active" data-toggle="tab" href="#reciveMail">받은 메일함</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" data-toggle="tab" href="#sendMail">보낸 메일함</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" data-toggle="tab" href="#importantMail">중요 메일함</a>
+					</li>
+				</ul>
+				<div class="tab-content">
+					<div class="tab-pane fade show active" id="#reciveMail">
+						<table class="table">
+							<colgroup>
+								<col width="120px">
+								<col width="auto">
+								<col width="90px">
+							</colgroup>
+							<tr>
+								<td>이영우</td>
+								<td><a href="#">[메일입니다]메일이 왔어요</a></td>
+								<td><span>2021-09-02</span></td>
+							</tr>
+							<tr>
+								<td>이영우</td>
+								<td><a href="#">[메일입니다]메일이 왔어요</a></td>
+								<td><span>2021-09-02</span></td>
+							</tr>
+							<tr>
+								<td>이영우</td>
+								<td><a href="#">[메일입니다]메일이 왔어요</a></td>
+								<td><span>2021-09-02</span></td>
+							</tr>
+							<tr>
+								<td>이영우</td>
+								<td><a href="#">[메일입니다]메일이 왔어요</a></td>
+								<td><span>2021-09-02</span></td>
+							</tr>
+							<tr>
+								<td>이영우</td>
+								<td><a href="#">[메일입니다]메일이 왔어요</a></td>
+								<td><span>2021-09-02</span></td>
+							</tr>
+						</table>
+					</div>
+					<div class="tab-pane fade" id="#sendMail">
+					</div>
+					<div class="tab-pane fade" id="#importantMail">
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="col-sm-5">
+			<div class="divSimpleCalendar">
+			<div id='calendar'>
+			</div>
+			</div>
+			<div class="divSimpleSurvet">
+				<span class="title">진행중인 설문</span>
+				<div class="divSurvey">
+					<header><span class="surveyCheckStatus">미참여</span></header>
+					<div class="surveySubject">
+						<h4 class="surveyTitle">설문제목</h4>
+						<span class="surveyDate">2021-09-01 ~ 2021-09-02</span>
+					</div>
+					<div class="surveyContent">
+						<table class="table">
+							<colgroup>
+								<col width="80px">
+								<col width="auto">
+							</colgroup>
+							<tr>
+								<td><span>작성자</span></td>
+								<td>이영우</td>
+							</tr>
+							<tr>
+								<td><span>설문결과</span></td>
+								<td>공개</td>
+							</tr>
+						</table>
+						<div class="divGoSurvey">
+							<button id="btnGoSurvey" type="button" class="btn">설문 참여</button>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

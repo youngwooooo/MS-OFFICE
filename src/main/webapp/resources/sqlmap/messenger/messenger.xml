@@ -1,0 +1,104 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.messenger.mapper.MessengerMapper">
+
+<!-- 참여한 모든 채팅방에서 읽지 않은 개수 -->
+<select id="getMessageCount" parameterType="String" resultType="int">
+<![CDATA[
+select count(B.Chtt_No) chtt_no
+from
+    (select chtt_room_no, last_tm, entnc_tm
+    from Tb_Chtt_Prtcpnt
+    where Prtcpnt_Empno = #{prtcpntEmpno}) A, tb_chtt B
+where B.Chtt_Room_No in A.Chtt_Room_No
+and NVL(A.Last_Tm, A.Entnc_Tm) < B.Writng_Tm
+]]>
+</select>
+
+<!-- 다음 채팅방 번호 얻기 -->
+<select id="nextRoom" resultType="String">
+	SELECT
+		nvl(max(chtt_room_no), 0) + 1 chtt_room_no
+	FROM
+		tb_chtt_room
+</select>
+
+<!-- 새 채팅방 만들기 -->
+<insert id="createRoom" parameterType="empVo">
+INSERT INTO tb_chtt_room (
+    chtt_room_no
+   ,ester_empno
+   ,estbl_tm
+) VALUES (
+    (SELECT
+        nvl(max(chtt_room_no), 0) + 1 chtt_room_no
+    FROM
+        tb_chtt_room)
+   ,#{empno}
+   ,sysdate
+)
+</insert>
+
+<!-- 채팅방에 사람 넣기 -->
+<insert id="invite" parameterType="empVo">
+	INSERT INTO tb_chtt_prtcpnt (
+		chtt_room_no
+		,prtcpnt_empno
+		,entnc_tm
+		,exit_tm
+	) VALUES (
+		#{chttRoomNo}
+		,#{empno}
+		,sysdate
+		,null
+	)
+</insert>
+
+<!-- 사용자 검색 -->
+<select id="search" parameterType="String" resultType="empVo">
+SELECT
+    empno
+   ,tb_emp.dept_code dept_code
+   ,C1.NM DEPT_NM
+   ,tb_emp.rspofc_code rspofc_code
+   ,C2.NM RSPOFC_NM
+   ,tb_emp.ofcps_code ofcps_code
+   ,C3.NM OFCPS_NM
+   ,suprr_empno
+   ,password
+   ,tb_emp.nm nm
+   ,email
+   ,telno
+   ,zip
+   ,adres
+   ,adres_detail
+   ,ecny_de
+   ,retire_de
+   ,resve_confm_author
+   ,file_nm
+   ,file_cours
+   ,file_orginl_nm
+FROM
+(SELECT
+    *
+FROM
+    tb_empl
+where nm like '%' || #{String} || '%' 
+or ofcps_code in (select code from tb_unity_code where nm like '%' || #{String} || '%')
+or rspofc_code in (select code from tb_unity_code where nm like '%' || #{String} || '%')
+or dept_code in (select code from tb_unity_code where nm like '%' || #{String} || '%')) tb_emp, tb_unity_code C1, tb_unity_code C2, tb_unity_code C3
+where tb_emp.ofcps_code = C3.code
+and tb_emp.rspofc_code = C2.code
+and tb_emp.dept_code = C1.code
+</select>
+
+<update id="exitRoom" parameterType="empVo">
+	UPDATE tb_chtt_prtcpnt
+	SET
+		exit_tm = sysdate
+	WHERE
+		chtt_room_no = #{chttRoomNo}
+		AND prtcpnt_empno = #{empno}
+		AND exit_tm is null
+</update>
+
+</mapper>

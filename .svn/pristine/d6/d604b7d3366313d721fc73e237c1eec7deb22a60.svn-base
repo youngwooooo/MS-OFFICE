@@ -1,0 +1,192 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.todo.mapper.TodoMapper">
+	<!-- 보드 조회 -->
+	<select id="boardAllList" resultType="todoVO">
+		SELECT BOARD_NO AS boardNo
+			, ESTER_EMPNO AS esterEmpno
+			, BOARD_NM AS boardNm
+			, BKMK AS bkmk
+		FROM TB_TODO_BOARD
+	</select>
+	
+	<!-- 보드 공유자 조회-->
+	<select id="boardCocnrAllList" resultType="todoVO">
+		SELECT A.BOARD_NO AS boardNo
+				, A.COCNR_EMPNO AS cocnrEmpno
+				, C.FILE_COURS AS fileCours
+				, C.FILE_NM AS fileNm
+		FROM TB_BOARD_COCNR A
+			, TB_EMPL B
+			, TB_FILE C
+		WHERE A.COCNR_EMPNO = B.EMPNO 
+		AND B.FILE_NO = C.FILE_NO
+	</select>
+	
+	<!-- 보드 생성 -->
+	<insert id="createBoard" parameterType="todoVO">
+		<selectKey order="BEFORE" keyProperty="boardNo" resultType="int">
+			SELECT NVL(MAX(BOARD_NO),0) + 1 FROM TB_TODO_BOARD 
+		</selectKey>
+		INSERT INTO
+			TB_TODO_BOARD
+			(BOARD_NO
+			, ESTER_EMPNO
+			, BOARD_NM
+			, BKMK)
+		VALUES(#{boardNo}
+				, #{esterEmpno}
+				, #{boardNm}
+				, 'N')
+	</insert>
+	<!-- 보드 공유자 추가 -->
+	<insert id="addBoardCocnr" parameterType="todoVO">
+		INSERT
+			INTO
+			TB_BOARD_COCNR
+			(BOARD_NO
+			, COCNR_EMPNO)
+		VALUES
+			(#{boardNo}
+			, #{cocnrEmpno})
+	</insert>
+	
+	<!-- 즐겨찾기 여부 업데이트 -->
+	<update id="updateBkmk" parameterType="hashMap">
+		UPDATE TB_TODO_BOARD
+		SET 
+			BKMK = #{bkmk}
+		WHERE
+			BOARD_NO = #{boardNo}
+	</update>
+	
+	<!-- 보드 상세 조회(보드 정보) -->
+	<select id="detailBoard" parameterType="int" resultType="todoVO">
+		SELECT BOARD_NO, ESTER_EMPNO, BOARD_NM, BKMK 
+		FROM TB_TODO_BOARD
+		WHERE BOARD_NO = #{boardNo}
+	</select>
+	
+	<!-- 보드  상세 조회(보드 공유자 정보) -->
+	<select id="detailBoardCocnr" parameterType="int" resultType="todoVO">
+		SELECT A.BOARD_NO, A.COCNR_EMPNO, C.FILE_COURS, C.FILE_NM 
+		FROM TB_BOARD_COCNR A, TB_EMPL B, TB_FILE C
+		WHERE A.COCNR_EMPNO = B.EMPNO 
+		AND B.FILE_NO = C.FILE_NO
+		AND BOARD_NO = #{boardNo}
+	</select>
+	
+	<!-- 전체 카드 메뉴 조회 -->
+	<select id="cardMenuList" resultType="todoVO">
+		SELECT
+			BOARD_NO
+			, CARD_MENU_NO
+			, CARD_SJ
+			, CARD_ORDR
+		FROM
+			TB_CARD_MENU
+		ORDER BY CARD_ORDR
+	</select>
+	
+	<!-- 카드 메뉴 생성 -->
+	<insert id="createCardMenu" parameterType="todoVO">
+	<selectKey order="BEFORE" keyColumn="cardMenuNo,cardOrdr" keyProperty="cardMenuNo,cardOrdr" resultType="todoVO">
+		SELECT NVL(MAX(CARD_MENU_NO),0)+1 AS cardMenuNo
+				, NVL(MAX(CARD_ORDR),0)+1 AS cardOrdr
+		FROM TB_CARD_MENU
+	</selectKey>
+		INSERT INTO
+		TB_CARD_MENU
+			(BOARD_NO
+				, CARD_MENU_NO
+				, CARD_SJ
+				, CARD_ORDR)
+		VALUES
+			(#{boardNo}
+			, #{cardMenuNo}
+			, #{cardSj}
+			, #{cardOrdr})
+	</insert>
+	
+	<!-- 생성된 카드 메뉴 조회 -->
+	<select id="createdCardMenuInfo" parameterType="int" resultType="todoVO">
+		SELECT
+			BOARD_NO AS boardNo
+			, CARD_MENU_NO AS cardMenuNo
+			, CARD_SJ AS cardSj
+			, CARD_ORDR AS cardOrdr
+		FROM
+			TB_CARD_MENU
+		WHERE CARD_MENU_NO = #{cardMenuNo}
+	</select>
+	
+	<!-- 전체 카드 조회 -->
+	<select id="cardList" resultType="todoVO">
+		SELECT
+			CARD_MENU_NO AS cardMenuNo
+			, BOARD_NO AS boardNo
+			, CARD_NO AS cardNo
+			, CARD_NM AS cardNm
+			, WRTER_EMPNO AS wrterEmpno
+			, CARD_CN AS cardCn
+			, FILE_NO AS fileNo
+			, TO_CHAR(WRITNG_TM, 'YYYY-MM-dd') AS writngTm
+			, UPDT_EMPNO AS updtEmpno
+			, UPDT_TM AS updtTm
+		FROM
+			TB_CARD
+		ORDER BY CARD_NO
+	</select>
+	
+	<!-- 카드 생성 -->
+	<insert id="createCard" parameterType="todoVO">
+		<selectKey order="BEFORE" keyColumn="cardNo" keyProperty="cardNo" resultType="todoVO">
+			SELECT NVL(MAX(CARD_NO), 0) + 1 AS cardNo FROM TB_CARD
+		</selectKey>
+		INSERT
+			INTO
+			TB_CARD
+		(CARD_MENU_NO
+			, BOARD_NO
+			, CARD_NO
+			, CARD_NM
+			, WRTER_EMPNO
+			, WRITNG_TM)
+		VALUES(#{cardMenuNo}
+		, #{boardNo}
+		, #{cardNo}
+		, #{cardNm}
+		, #{wrterEmpno}
+		, SYSDATE)
+	</insert>
+	
+	<!-- 생성된 카드 조회 -->
+	<select id="createdCardInfo" parameterType="int" resultType="todoVO">
+		SELECT
+			CARD_MENU_NO AS cardMenuNo
+			, BOARD_NO AS boardNo
+			, CARD_NO AS cardNo
+			, CARD_NM AS cardNm
+			, WRTER_EMPNO AS wrterEmpno
+			, CARD_CN AS cardCn
+			, FILE_NO AS fileNo
+			, TO_CHAR(WRITNG_TM, 'YYYY-MM-dd') AS writngTm
+			, UPDT_EMPNO AS updtEmpno
+			, UPDT_TM AS updtTm
+		FROM
+			TB_CARD
+		WHERE CARD_NO = #{cardNo}
+	</select>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+</mapper>

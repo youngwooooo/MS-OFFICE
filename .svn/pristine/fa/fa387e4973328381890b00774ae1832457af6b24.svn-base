@@ -1,0 +1,844 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.community.mapper.CommuMapper">
+	<!-- 커뮤니티 만들기 -->
+	<insert id="comInsert" parameterType="kr.or.ddit.community.vo.CommuVO">
+		<selectKey keyProperty="cmmntyNo" order="BEFORE" resultType="int" >
+			SELECT NVL(MAX(CMMNTY_NO), 0) + 1 FROM TB_CMMNTY
+		</selectKey>
+		INSERT INTO TB_CMMNTY (CMMNTY_NO, ESTBL_EMPNO, SJ, CN, RCRIT_AT)
+		VALUES
+		(
+		    #{cmmntyNo}
+		    ,#{estblEmpno}
+		    ,#{sj}
+		    ,#{cn}
+		    ,#{rcritAt}
+		)
+	</insert>
+	
+	<!-- 해당 커뮤니티 공지게시판 만들기 -->
+	<insert id="comNoticeB" parameterType="int">
+		INSERT INTO TB_CMMNTY_BBS (BBS_NO, CMMNTY_NO, BBS_NM, BBS_TY)
+		VALUES(
+				1
+				,#{cmmntyNo}
+				,'공지사항'
+				,'T'
+		)
+	</insert>
+	
+	<!-- 해당 커뮤니티 활동게시판 만들기 -->
+	<insert id="comActiveB" parameterType="int">
+		INSERT INTO TB_CMMNTY_BBS (BBS_NO, CMMNTY_NO, BBS_NM, BBS_TY)
+		VALUES(
+				2
+				,#{cmmntyNo}
+				,'활동사진'
+				,'I'
+		)
+	</insert>
+	
+	<!-- 커뮤니티 목록 -->
+	<select id="comList" resultType="kr.or.ddit.community.vo.CommuVO">	
+	SELECT T.* 
+		FROM (
+		SELECT ROW_NUMBER() OVER(ORDER BY CMMNTY_NO DESC) RNUM
+			, N.CMMNTY_NO
+			, N.ESTBL_EMPNO
+			, E.NM
+			, N.SJ
+			, N.CN
+			, N.RCRIT_AT
+			, N.ESTBL_TM
+		FROM TB_CMMNTY N, TB_EMPL E
+		WHERE N.ESTBL_EMPNO = E.EMPNO
+		<choose>
+			<when test="selSearch=='' and selSearch.equals('')">
+				AND E.NM || N.SJ || N.CN LIKE '%' || #{keyword} || '%'
+			</when>
+			<otherwise>
+				<if test="selSearch!='' and selSearch.equals('nm')">
+				AND E.NM LIKE '%' || #{keyword} || '%'
+				</if>
+				<if test="selSearch!='' and selSearch.equals('sj')">
+				AND N.SJ LIKE '%' || #{keyword} || '%'
+				</if>
+				<if test="selSearch!='' and selSearch.equals('cn')">
+				AND N.CN LIKE '%' || #{keyword} || '%'
+				</if>
+			</otherwise>
+		</choose>
+	) T
+	WHERE T.RNUM BETWEEN #{currentPage} * 10 - 9 AND #{currentPage} * 10
+	</select>
+	
+	<!-- 커뮤니티 수 -->
+	<select id="comTotal" parameterType="hashMap" resultType="int">
+		SELECT COUNT(*)
+		FROM TB_CMMNTY N,TB_EMPL E
+		WHERE N.ESTBL_EMPNO = E.EMPNO
+		<choose>
+			<when test="selSearch=='' and selSearch.equals('')">
+				AND NM || SJ || CN LIKE '%' || #{keyword} || '%'
+			</when>
+			<otherwise>
+				<if test="selSearch!='' and selSearch.equals('nm')">
+				AND NM LIKE '%' || #{keyword} || '%'
+				</if>
+				<if test="selSearch!='' and selSearch.equals('sj')">
+				AND SJ LIKE '%' || #{keyword} || '%'
+				</if>
+				<if test="selSearch!='' and selSearch.equals('cn')">
+				AND CN LIKE '%' || #{keyword} || '%'
+				</if>
+			</otherwise>
+		</choose>
+	</select>
+	
+	<!-- 커뮤니티 모달조회 -->
+	<select id="comModal" resultType="kr.or.ddit.community.vo.CommuVO">	
+		SELECT ROW_NUMBER() OVER(ORDER BY CMMNTY_NO DESC) RNUM
+		    , N.CMMNTY_NO
+		    , N.ESTBL_EMPNO
+		    , E.NM
+		    , N.SJ
+		    , N.CN
+		    , N.RCRIT_AT
+		    , N.ESTBL_TM
+		    , (SELECT COUNT(*) FROM tb_bbsctt b
+		        WHERE b.CMMNTY_NO = #{cmmntyNo}) board_num
+		    , (SELECT COUNT(*) FROM tb_cmmnty_sbscrber c
+		        WHERE c.CMMNTY_NO = #{cmmntyNo}
+		        AND c.APPROVE_AT = 'Y') join_num
+		FROM TB_CMMNTY N, TB_EMPL E
+		WHERE  N.CMMNTY_NO = #{cmmntyNo}
+		AND N.ESTBL_EMPNO = E.EMPNO
+	</select>
+	
+	<!-- 나의 커뮤니티 -->
+	<select id="comMy" resultType="kr.or.ddit.community.vo.CommuVO" parameterType="int">	
+		SELECT SJ, CMMNTY_NO
+		FROM TB_CMMNTY
+		WHERE ESTBL_EMPNO = #{estblEmpno}
+	</select>
+	
+	<!-- 커뮤니티 가입하기 -->
+	<insert id="comJoin" parameterType="kr.or.ddit.community.vo.ComJoinVO">
+		INSERT INTO TB_CMMNTY_SBSCRBER
+			(CMMNTY_NO
+			, SBSCRBER_EMPNO
+			, APPROVE_EMPNO)
+		VALUES(#{cmmntyNo}
+			, #{sbscrberEmpno}
+			, #{approveEmpno})
+	</insert>
+	
+	<!-- 가입한 커뮤니티(가입대기) -->
+	<select id="comStand" resultType="kr.or.ddit.community.vo.ComJoinVO" parameterType="int">
+		SELECT
+			N.CMMNTY_NO 
+			, N.SBSCRBER_EMPNO
+			, N.APPROVE_EMPNO
+			, N.APPROVE_TM
+			, N.APPROVE_AT
+			, C.SJ
+			, E.NM
+		FROM
+			TB_CMMNTY_SBSCRBER N, TB_CMMNTY C, TB_EMPL E
+		WHERE SBSCRBER_EMPNO = #{sbscrberEmpno}
+		AND APPROVE_AT = 'N'
+		AND N.CMMNTY_NO = C.CMMNTY_NO
+		AND N.APPROVE_EMPNO = E.EMPNO
+		ORDER BY APPROVE_TM
+	</select>
+		
+	<!-- 가입한 커뮤니티(가입승인) -->
+	<select id="comAccept" resultType="kr.or.ddit.community.vo.ComJoinVO" parameterType="hashMap">
+		SELECT R.*
+		FROM (SELECT ROW_NUMBER() OVER(ORDER BY APPROVE_TM) RNUM
+			, N.CMMNTY_NO 
+			, N.SBSCRBER_EMPNO
+			, N.APPROVE_EMPNO
+			, N.APPROVE_TM
+			, N.APPROVE_AT
+			, C.SJ
+			, C.CN
+			, E.NM
+			, C.RCRIT_AT
+			, C.ESTBL_TM
+			, (SELECT COUNT(*) FROM tb_bbsctt b
+		        WHERE b.CMMNTY_NO = N.CMMNTY_NO) board_num
+		    , (SELECT COUNT(*) FROM tb_cmmnty_sbscrber c
+		        WHERE c.CMMNTY_NO = N.CMMNTY_NO) join_num
+			FROM
+				TB_CMMNTY_SBSCRBER N, TB_CMMNTY C, TB_EMPL E
+			WHERE SBSCRBER_EMPNO = #{sbscrberEmpno}
+			AND APPROVE_AT = 'Y'
+			AND N.CMMNTY_NO = C.CMMNTY_NO
+			AND N.APPROVE_EMPNO = E.EMPNO
+			ORDER BY APPROVE_TM) R
+		WHERE RNUM BETWEEN #{currentPage} * 3 - 2 AND #{currentPage} * 3
+	</select>
+	
+	<!-- 가입한 커뮤니티(가입승인) 수 -->
+	<select id="comAcceptCount" resultType="int" parameterType="int">
+		SELECT COUNT(*)
+		FROM
+			TB_CMMNTY_SBSCRBER N, TB_CMMNTY C, TB_EMPL E
+		WHERE SBSCRBER_EMPNO = #{sbscrberEmpno}
+		AND APPROVE_AT = 'Y'
+		AND N.CMMNTY_NO = C.CMMNTY_NO
+		AND N.APPROVE_EMPNO = E.EMPNO
+		ORDER BY APPROVE_TM
+	</select>
+	
+	<!-- 가입한 회원 리스트 (승인 / 취소) -->
+	<select id="comAllMem" resultType="kr.or.ddit.community.vo.ComJoinVO" parameterType="hashMap">
+		SELECT R.*
+		FROM (SELECT ROW_NUMBER() OVER(ORDER BY APPROVE_TM) RNUM
+			, N.CMMNTY_NO 
+			, C.SJ
+			, N.SBSCRBER_EMPNO
+			, E.NM
+			, N.APPROVE_EMPNO
+			, N.APPROVE_TM
+			, N.APPROVE_AT
+		FROM
+			TB_CMMNTY_SBSCRBER N, TB_EMPL E, TB_CMMNTY C
+		WHERE APPROVE_EMPNO = #{approveEmpno}
+		AND APPROVE_AT = 'N'
+		AND N.SBSCRBER_EMPNO = E.EMPNO
+		AND N.CMMNTY_NO = C.CMMNTY_NO
+		<choose>
+			<when test="selSearch=='' and selSearch.equals('')">
+				AND NM || SJ || APPROVE_AT LIKE '%' || #{keyword} || '%'
+			</when>
+			<otherwise>
+				<if test="selSearch!='' and selSearch.equals('nm')">
+				AND NM LIKE '%' || #{keyword} || '%'
+				</if>
+				<if test="selSearch!='' and selSearch.equals('sj')">
+				AND SJ LIKE '%' || #{keyword} || '%'
+				</if>
+			</otherwise>
+		</choose>
+		ORDER BY APPROVE_TM)R
+		WHERE RNUM BETWEEN #{currentPage} * 12 - 11 AND #{currentPage} * 12
+	</select>
+	
+	<!-- 가입한 회원 리스트 (승인 / 취소) 수-->
+	<select id="comAllMemCount" resultType="int" parameterType="hashMap">
+		SELECT COUNT(*)
+		FROM
+			TB_CMMNTY_SBSCRBER N, TB_EMPL E, TB_CMMNTY C
+		WHERE APPROVE_EMPNO = #{approveEmpno}
+		AND APPROVE_AT = 'N'
+		AND N.SBSCRBER_EMPNO = E.EMPNO
+		AND N.CMMNTY_NO = C.CMMNTY_NO
+		<choose>
+			<when test="selSearch=='' and selSearch.equals('')">
+				AND NM || SJ || APPROVE_AT LIKE '%' || #{keyword} || '%'
+			</when>
+			<otherwise>
+				<if test="selSearch!='' and selSearch.equals('nm')">
+				AND NM LIKE '%' || #{keyword} || '%'
+				</if>
+				<if test="selSearch!='' and selSearch.equals('sj')">
+				AND SJ LIKE '%' || #{keyword} || '%'
+				</if>
+			</otherwise>
+		</choose>
+		ORDER BY APPROVE_TM
+	</select>
+	
+	<!-- 가입한 회원 리스트 변경 -->
+	<update id="comAtUpdate" parameterType="kr.or.ddit.community.vo.ComJoinVO">
+		UPDATE
+			TB_CMMNTY_SBSCRBER
+		SET
+			APPROVE_AT = 'Y'
+		WHERE
+			CMMNTY_NO = #{cmmntyNo}
+			AND SBSCRBER_EMPNO = #{sbscrberEmpno}
+	</update>
+	
+	<!-- 가입한 회원 취소 -->
+	<delete id="comAtCancel" parameterType="kr.or.ddit.community.vo.ComJoinVO">
+		DELETE
+		FROM
+			TB_CMMNTY_SBSCRBER
+		WHERE
+			CMMNTY_NO = #{cmmntyNo}
+			AND SBSCRBER_EMPNO = #{sbscrberEmpno}
+	</delete>
+	
+	
+	<!-- Detail 커뮤니티 입장하기 -->
+	<!-- 해당 커뮤니티 기본상세 정보 -->
+	<select id="comDetail" resultType="kr.or.ddit.community.vo.CommuVO" parameterType="int">
+		SELECT N.CMMNTY_NO
+		    , N.ESTBL_EMPNO
+		    , E.NM
+		    , N.SJ
+		    , N.CN
+		    , N.RCRIT_AT
+		    , D.DEPT_NM
+            , F.FILE_NO
+		FROM TB_CMMNTY N, TB_EMPL E, TB_DEPT D, TB_FILE F
+		WHERE  N.CMMNTY_NO = #{cmmntyNo}
+		AND N.ESTBL_EMPNO = E.EMPNO
+		AND E.DEPT_CODE = D.DEPT_CODE
+        AND E.FILE_NO = F.FILE_NO
+	</select>
+	
+	<!-- 해당 커뮤니티 수정 -->
+	<update id="comUpdate" parameterType="kr.or.ddit.community.vo.CommuVO">
+		UPDATE
+			TB_CMMNTY
+		SET
+			SJ = #{sj},
+			CN = #{cn},
+			RCRIT_AT = #{rcritAt}
+		WHERE CMMNTY_NO = #{cmmntyNo}
+	</update>
+	
+	<!-- 해당 커뮤니티 회원 리스트 -->
+	<select id="comMemList" resultType="kr.or.ddit.community.vo.ComJoinVO" parameterType="int">
+		SELECT N.CMMNTY_NO
+			, N.SBSCRBER_EMPNO
+			, E.NM
+			, D.DEPT_NM
+		FROM TB_CMMNTY_SBSCRBER N, TB_EMPL E, TB_DEPT D
+		WHERE  N.CMMNTY_NO = #{cmmntyNo}
+		AND N.SBSCRBER_EMPNO = E.EMPNO
+		AND E.DEPT_CODE = D.DEPT_CODE
+		AND N.APPROVE_AT = 'Y'
+	</select>
+	
+	<!-- 해당 커뮤니티 가입대기 회원 리스트 -->
+	<select id="comWaitList" resultType="kr.or.ddit.community.vo.ComJoinVO" parameterType="int">
+		SELECT N.CMMNTY_NO
+			, N.SBSCRBER_EMPNO
+			, E.NM
+			, D.DEPT_NM
+		FROM TB_CMMNTY_SBSCRBER N, TB_EMPL E, TB_DEPT D
+		WHERE  N.CMMNTY_NO = #{cmmntyNo}
+		AND N.SBSCRBER_EMPNO = E.EMPNO
+		AND E.DEPT_CODE = D.DEPT_CODE
+		AND N.APPROVE_AT = 'N'
+	</select>
+	
+	<!-- 해당 커뮤니티 공지게시판에 해당하는 게시물 리스트 5개  -->
+	<select id="comNoticeList" resultType="kr.or.ddit.community.vo.ComBBVO" parameterType="int">
+		SELECT *
+		FROM(
+			SELECT
+				ROW_NUMBER() OVER(ORDER BY N.BBSCTT_NO DESC) RNUM,
+				N.CMMNTY_NO
+				, N.BBS_NO
+				, N.BBSCTT_NO
+				, N.WRTER_EMPNO
+				, N.SJ
+				, N.CN
+				, N.file_no
+				, N.RDCNT
+				, N.WRITNG_TM
+				, E.NM
+			FROM
+				TB_BBSCTT N, TB_EMPL E
+			WHERE N.CMMNTY_NO = #{cmmntyNo}
+			AND N.BBS_NO = 1
+			AND N.WRTER_EMPNO = E.EMPNO)
+		WHERE RNUM BETWEEN 1 AND 5
+	</select>
+	<!-- 해당 커뮤니티 공지게시판 전체 리스트 (더보기) -->
+	<select id="noticeListAdd" resultType="kr.or.ddit.community.vo.ComBBVO" parameterType="hashMap">
+		
+			SELECT R.*
+			FROM (
+				SELECT
+					ROW_NUMBER() OVER(ORDER BY N.BBSCTT_NO) RNUM
+		            , ROW_NUMBER() OVER(ORDER BY N.BBSCTT_NO DESC) DRNUM
+					, N.CMMNTY_NO
+					, N.BBS_NO
+					, N.BBSCTT_NO
+					, N.WRTER_EMPNO
+					, N.SJ
+					, N.CN
+					, N.file_no
+					, N.RDCNT
+					, N.WRITNG_TM
+					, E.NM
+				FROM
+					TB_BBSCTT N, TB_EMPL E
+				WHERE N.CMMNTY_NO = #{cmmntyNo}
+				AND N.BBS_NO = 1
+				AND N.WRTER_EMPNO = E.EMPNO
+			<choose>
+				<when test="selSearch=='' and selSearch.equals('')">
+					AND NM || SJ || CN LIKE '%' || #{keyword} || '%'
+				</when>
+				<otherwise>
+					<if test="selSearch!='' and selSearch.equals('nm')">
+					AND NM LIKE '%' || #{keyword} || '%'
+					</if>
+					<if test="selSearch!='' and selSearch.equals('sj')">
+					AND SJ LIKE '%' || #{keyword} || '%'
+					</if>
+					<if test="selSearch!='' and selSearch.equals('cn')">
+					AND CN LIKE '%' || #{keyword} || '%'
+					</if>
+				</otherwise>
+			</choose>
+			ORDER BY BBSCTT_NO DESC
+		) R
+		WHERE DRNUM BETWEEN #{currentPage} * 12 - 11 AND #{currentPage} * 12
+	</select>
+	<!-- 공지 수 -->
+	<select id="noticeTotal" parameterType="hashMap" resultType="int">
+		SELECT COUNT(*)
+		FROM TB_BBSCTT N,TB_EMPL E
+		WHERE N.CMMNTY_NO = #{cmmntyNo}
+		AND N.WRTER_EMPNO = E.EMPNO
+		<choose>
+			<when test="selSearch=='' and selSearch.equals('')">
+				AND NM || SJ || CN LIKE '%' || #{keyword} || '%'
+			</when>
+			<otherwise>
+				<if test="selSearch!='' and selSearch.equals('nm')">
+				AND NM LIKE '%' || #{keyword} || '%'
+				</if>
+				<if test="selSearch!='' and selSearch.equals('sj')">
+				AND SJ LIKE '%' || #{keyword} || '%'
+				</if>
+				<if test="selSearch!='' and selSearch.equals('cn')">
+				AND CN LIKE '%' || #{keyword} || '%'
+				</if>
+			</otherwise>
+		</choose>
+	</select>
+	<!-- 해당 커뮤니티 활동게시판에 해당하는 게시물 리스트 -->
+	<select id="comActiveList" resultType="kr.or.ddit.community.vo.ComBBVO" parameterType="hashMap">
+		SELECT T.*
+		FROM(
+		SELECT ROWNUM NUM, R.*
+		FROM (
+		SELECT
+		    ROW_NUMBER() OVER(ORDER BY A.BBSCTT_NO) RNUM
+		    ,A.cmmnty_no
+		    ,A.bbs_no
+		    ,A.bbsctt_no
+		    ,A.wrter_empno
+		    ,A.sj
+		    ,A.cn
+		    ,A.file_no
+		    ,A.rdcnt
+		    ,A.writng_tm
+		    ,A.updt_empno
+		    ,A.updt_tm
+		    ,B.like_cn
+		    ,C.answer_cn
+		    ,D.file_cours
+		    ,D.file_nm
+		    ,D.file_orginl_nm
+		    ,D.FILE_ORDR
+		    FROM
+		        tb_bbsctt A
+		        , tb_file D
+		        ,(SELECT
+		            cmmnty_no
+		            ,bbsctt_no
+		            ,bbs_no
+		            ,sum(decode(like_at, 'Y', 1, 'N', 0)) like_cn
+		        FROM
+		            tb_bbsctt_like
+		        where cmmnty_no = #{cmmntyNo}
+		        group by
+		            cmmnty_no, bbsctt_No, bbs_No) B
+		        ,(SELECT
+		               cmmnty_no
+		               ,bbsctt_no
+		               ,bbs_no
+		                ,count(*) answer_cn
+		            FROM
+		                tb_answer
+		            where cmmnty_no = #{cmmntyNo}
+		            group by 
+		                cmmnty_no, Bbsctt_No, Bbs_No) C
+		    WHERE A.bbs_No = 2
+		    AND A.file_no = D.file_No
+		    AND A.bbsctt_No = B.bbsctt_No(+)
+		    AND A.bbsctt_No = C.bbsctt_No(+)
+		    AND A.cmmnty_no = #{cmmntyNo}
+		    ORDER BY A.BBSCTT_NO DESC) R
+		    ) T
+		WHERE T.NUM BETWEEN #{currentPage} * 3 - 2 AND #{currentPage} * 3
+	</select>
+	
+	<!-- 해당 커뮤니티 활동게시판에 해당하는 게시물 리스트 -->
+	<select id="comActiveCount" resultType="int" parameterType="int">
+		SELECT
+			COUNT(*)
+			FROM
+				tb_bbsctt A
+				, tb_file D
+				,(SELECT
+					cmmnty_no
+					,bbsctt_no
+					,bbs_no
+					,sum(decode(like_at, 'Y', 1, 'N', 0)) like_cn
+				FROM
+					tb_bbsctt_like
+				where cmmnty_no = #{cmmntyNo}
+				group by
+					cmmnty_no, bbsctt_No, bbs_No) B
+				,(SELECT
+	                   cmmnty_no
+	                   ,bbsctt_no
+	                   ,bbs_no
+	                    ,count(*) answer_cn
+	                FROM
+	                    tb_answer
+	                where cmmnty_no = #{cmmntyNo}
+	                group by 
+	                    cmmnty_no, Bbsctt_No, Bbs_No) C
+		WHERE A.bbs_No = 2
+		AND A.file_no = D.file_No
+		AND A.bbsctt_No = B.bbsctt_No(+)
+		AND A.bbsctt_No = C.bbsctt_No(+)
+		AND A.cmmnty_no = #{cmmntyNo}
+		ORDER BY A.BBSCTT_NO DESC
+	</select>
+	
+	<!-- 해당 커뮤니티 공지게시판에 해당하는 게시물 상세보기 -->
+	<select id="comActiveLike" resultType="kr.or.ddit.community.vo.ComLikeVO" parameterType="kr.or.ddit.community.vo.ComLikeVO">
+		SELECT
+		    cmmnty_no,
+		    sbscrber_empno,
+		    bbsctt_no,
+		    bbs_no,
+		    like_at
+		FROM
+		    tb_bbsctt_like
+		WHERE CMMNTY_NO = #{cmmntyNo}
+		AND BBS_NO = 2
+		AND BBSCTT_NO = #{bbscttNo}
+		AND SBSCRBER_EMPNO = #{sbscrberEmpno}
+	</select>
+	
+	<!-- 해당 커뮤니티 활동 좋아요 N일때 Y로바꾸기  -->
+	<update id="comActiveLikeY" parameterType="kr.or.ddit.community.vo.ComLikeVO">
+		MERGE INTO TB_BBSCTT_LIKE L
+			USING DUAL
+			ON (L.CMMNTY_NO = #{cmmntyNo}
+                AND L.BBSCTT_NO = #{bbscttNo}
+                AND L.BBS_NO =2
+                AND L.SBSCRBER_EMPNO = #{sbscrberEmpno})
+			WHEN MATCHED THEN
+				UPDATE SET L.LIKE_AT = #{likeAt}
+                WHERE L.CMMNTY_NO = #{cmmntyNo}
+                AND L.BBSCTT_NO = #{bbscttNo}
+                AND L.BBS_NO =2
+                AND L.SBSCRBER_EMPNO = #{sbscrberEmpno}
+                
+			WHEN NOT MATCHED THEN
+				INSERT (L.CMMNTY_NO, L.SBSCRBER_EMPNO, L.BBSCTT_NO, L.BBS_NO, L.LIKE_AT)
+				VALUES (#{cmmntyNo}, #{sbscrberEmpno}, #{bbscttNo}, 2, 'Y')
+	</update>
+	
+	
+	<!-- Detail 커뮤니티 입장하기 -->
+	
+	<!-- 공지 게시물 작성하기 -->
+	<insert id="comNotiInsert" parameterType="kr.or.ddit.community.vo.ComBBVO">
+		<selectKey keyProperty="bbscttNo" order="BEFORE" resultType="int" >
+			SELECT NVL(MAX(bbsctt_no), 0) + 1 FROM tb_bbsctt WHERE bbs_no = 1 AND cmmnty_no=#{cmmntyNo}
+		</selectKey>
+		INSERT INTO tb_bbsctt (
+		    cmmnty_no, bbs_no, bbsctt_no, wrter_empno, sj, cn, file_no, rdcnt) 
+		VALUES (
+		    #{cmmntyNo}
+		    ,1
+		    ,#{bbscttNo}
+		    ,#{wrterEmpno}
+		    ,#{sj}
+		    ,#{cn}
+		    ,#{fileNo}
+		    ,0)
+	</insert>
+	
+	<!-- 공지 게시물 수정 -->
+	<update id="comNoticeUpdate" parameterType="kr.or.ddit.community.vo.ComBBVO">
+		UPDATE
+			tb_bbsctt
+		SET
+			SJ = #{sj},
+			CN = #{cn},
+			FILE_NO = #{fileNo}
+		WHERE CMMNTY_NO = #{cmmntyNo}
+		AND BBS_NO = 1
+		AND BBSCTT_NO = #{bbscttNo}
+	</update>
+	
+	<!-- 공지 게시물 삭제 -->
+	<delete id="comNoticeDelete" parameterType="kr.or.ddit.community.vo.ComBBVO">
+		DELETE
+		FROM
+			tb_bbsctt
+		WHERE CMMNTY_NO = #{cmmntyNo}
+		AND BBS_NO = 1
+		AND BBSCTT_NO = #{bbscttNo}
+	</delete>
+	
+	
+	<!-- 활동 게시물 작성하기 -->
+	<insert id="comActInsert" parameterType="kr.or.ddit.community.vo.ComBBVO">
+		<selectKey keyProperty="bbscttNo" order="BEFORE" resultType="int" >
+			SELECT NVL(MAX(bbsctt_no), 0) + 1 FROM tb_bbsctt WHERE bbs_no = 2 AND cmmnty_no=#{cmmntyNo}
+		</selectKey>
+		INSERT INTO tb_bbsctt (
+		    cmmnty_no, bbs_no, bbsctt_no, wrter_empno, sj, cn, file_no) 
+		VALUES (
+		    #{cmmntyNo}
+		    ,2
+		    ,#{bbscttNo}
+		    ,#{wrterEmpno}
+		    ,#{sj}
+		    ,#{cn}
+		    ,#{fileNo})
+	</insert>
+	
+	<!-- 활동 게시물 수정 -->
+	<update id="comActUpdate" parameterType="kr.or.ddit.community.vo.ComBBVO">
+		UPDATE
+			tb_bbsctt
+		SET
+			SJ = #{sj},
+			CN = #{cn}
+		WHERE CMMNTY_NO = #{cmmntyNo}
+		AND BBS_NO = 2
+		AND BBSCTT_NO = #{bbscttNo}
+	</update>
+	
+	<!-- 활동 게시물 삭제 -->
+	<delete id="comActDelete" parameterType="kr.or.ddit.community.vo.ComBBVO">
+		DELETE
+		FROM
+			tb_bbsctt
+		WHERE CMMNTY_NO = #{cmmntyNo}
+		AND BBS_NO = 2
+		AND BBSCTT_NO = #{bbscttNo}
+	</delete>
+	
+	<!-- 해당 커뮤니티 공지게시판에 해당하는 게시물 상세보기 -->
+	<select id="comNoticeDetail" resultType="kr.or.ddit.community.vo.ComBBVO" parameterType="kr.or.ddit.community.vo.ComBBVO">
+		SELECT
+			ROW_NUMBER() OVER(ORDER BY N.BBSCTT_NO DESC) RNUM,
+			N.CMMNTY_NO
+			, N.BBS_NO
+			, N.BBSCTT_NO
+			, N.WRTER_EMPNO
+			, N.SJ
+			, N.CN
+			, N.file_no
+			, N.RDCNT
+			, N.WRITNG_TM
+			, E.NM
+		FROM
+			TB_BBSCTT N, TB_EMPL E
+		WHERE N.CMMNTY_NO = #{cmmntyNo}
+		AND N.BBS_NO = 1
+		AND N.BBSCTT_NO = #{bbscttNo}
+		AND N.WRTER_EMPNO = E.EMPNO
+	</select>
+	<!-- 해당 커뮤니티 활동게시판에 해당하는 게시물 상세보기 -->
+	<select id="comActiveDetail" resultType="kr.or.ddit.community.vo.ComBBVO" parameterType="kr.or.ddit.community.vo.ComBBVO">
+		SELECT
+		A.cmmnty_no
+		,A.bbs_no
+		,A.bbsctt_no
+		,A.wrter_empno
+		,A.sj
+		,A.cn
+		,A.file_no
+		,A.rdcnt
+		,A.writng_tm
+		,A.updt_empno
+		,A.updt_tm
+		,B.like_cn
+		,C.answer_cn
+        ,D.file_cours
+        ,D.file_nm
+        ,D.file_orginl_nm
+        ,D.FILE_ORDR
+        ,E.NM
+        ,E.FILE_NO photoNo
+		FROM
+			tb_bbsctt A
+			, tb_file D
+			,(SELECT
+				cmmnty_no
+				,bbsctt_no
+				,bbs_no
+				,sum(decode(like_at, 'Y', 1, 'N', 0)) like_cn
+			FROM
+				tb_bbsctt_like
+			where cmmnty_no = #{cmmntyNo}
+			group by
+				cmmnty_no, bbsctt_No, bbs_No) B
+			,(SELECT
+                   cmmnty_no
+                   ,bbsctt_no
+                   ,bbs_no
+                    ,count(*) answer_cn
+                FROM
+                    tb_answer
+                where cmmnty_no = #{cmmntyNo}
+                group by 
+                    cmmnty_no, Bbsctt_No, Bbs_No) C
+             , TB_EMPL E
+             , TB_FILE F
+		WHERE A.bbs_No = 2
+		AND A.WRTER_EMPNO = E.EMPNO
+		AND F.FILE_NO = E.FILE_NO
+		AND A.file_no = D.file_No
+		AND A.bbsctt_No = B.bbsctt_No(+)
+		AND A.bbsctt_No = C.bbsctt_No(+)
+		AND A.BBSCTT_NO = #{bbscttNo}
+		AND A.cmmnty_no = #{cmmntyNo}
+	</select>
+	<!-- 해당 커뮤니티의 게시물 조회수 -->
+	<update id="comRdcnt" parameterType="kr.or.ddit.community.vo.ComBBVO">
+		UPDATE TB_BBSCTT SET
+			RDCNT = RDCNT+1
+		WHERE CMMNTY_NO = #{cmmntyNo}
+		AND BBS_NO = 1
+		AND BBSCTT_NO = #{bbscttNo}
+	</update>
+	
+	<!-- 공지사항에서 삭제할 파일 번호  -->
+	<select id="delFileNo" parameterType="kr.or.ddit.community.vo.ComBBVO"  resultType="int">
+		SELECT FILE_NO
+		FROM
+			TB_BBSCTT
+		WHERE CMMNTY_NO = #{cmmntyNo}
+			AND BBS_NO = 1
+			AND BBSCTT_NO = #{bbscttNo}
+	</select>
+	
+	<!-- 활동사진에서 삭제할 파일 번호  -->
+	<select id="delActFileNo" parameterType="kr.or.ddit.community.vo.ComBBVO"  resultType="int">
+		SELECT FILE_NO
+		FROM
+			TB_BBSCTT
+		WHERE CMMNTY_NO = #{cmmntyNo}
+			AND BBS_NO = 2
+			AND BBSCTT_NO = #{bbscttNo}
+	</select>
+	
+	<!-- 활동사진 댓글 등록 -->
+	<insert id="createActiveAnswer" parameterType="kr.or.ddit.community.vo.ComBBVO">
+	<selectKey order="BEFORE" keyProperty="answerNo" resultType="int">
+		SELECT NVL(MAX(ANSWER_NO),0) + 1 AS answerNo
+		FROM tb_answer
+	</selectKey>
+		INSERT INTO tb_answer (
+		    answer_no,
+		    bbsctt_no,
+		    empno,
+		    bbt_cn,
+		    writng_tm,
+		    cmmnty_no,
+		    bbs_no,
+		    updt_empno,
+		    updt_tm
+		) VALUES (
+			#{answerNo}    
+			, #{bbscttNo} 
+			, #{empno}     
+			, #{bbtCn}    
+			, SYSDATE 
+			, #{cmmntyNo} 
+			, 2   
+			, ''
+			, SYSDATE   
+		)
+	</insert>
+	
+	<!-- 활동사진에 등록한 댓글 조회 -->
+	<select id="activedAnswer" parameterType="kr.or.ddit.community.vo.ComBBVO" resultType="kr.or.ddit.community.vo.ComBBVO">
+		SELECT
+			A.cmmnty_no 
+			, A.bbs_no
+			, A.bbsctt_no
+			, A.ANSWER_NO AS answerNo
+			, A.empno AS empno
+			, TO_CHAR(A.WRITNG_TM, 'YYYY-MM-dd HH24:MI') AS writngTm
+			, A.UPDT_EMPNO AS updtEmpno
+			, TO_CHAR(A.UPDT_TM, 'YYYY-MM-dd HH24:MI') AS updtTm
+			, A.bbt_cn AS bbtCn
+			, B.NM
+		FROM
+			tb_answer A, TB_EMPL B
+		WHERE A.empno = B.EMPNO
+			AND answer_no = #{answerNo}
+			AND cmmnty_no = #{cmmntyNo}
+			AND bbs_no = 2
+			AND bbsctt_no = #{bbscttNo}
+		ORDER BY ANSWER_NO
+	</select>
+	
+	<!-- 활동사진 댓글 수정 -->
+	<update id="editActiveAnswer" parameterType="kr.or.ddit.community.vo.ComBBVO">
+		UPDATE
+			tb_answer
+		SET
+			UPDT_EMPNO = #{updtEmpno}
+			, UPDT_TM = SYSDATE
+			, bbt_cn = #{bbtCn}
+		WHERE
+			cmmnty_no = #{cmmntyNo}
+			AND bbs_no = 2
+			AND bbsctt_no = #{bbscttNo}
+			AND answer_no = #{answerNo}
+	</update>
+	
+	<!-- 활동사진 댓글 삭제 -->
+	<delete id="deleteActiveAnswer" parameterType="hashMap">
+		DELETE
+		FROM
+			tb_answer
+		WHERE
+			cmmnty_no = #{cmmntyNo}
+			AND bbs_no = 2
+			AND bbsctt_no = #{bbscttNo}
+			AND answer_no = #{answerNo}
+	</delete>
+	
+	<!-- 활동사진 댓글 전체 조회 -->
+	<select id="activeAnswerList" parameterType="kr.or.ddit.community.vo.ComBBVO" resultType="kr.or.ddit.community.vo.ComBBVO">
+		SELECT
+			A.cmmnty_no 
+			, A.bbs_no
+			, A.bbsctt_no
+			, A.ANSWER_NO AS answerNo
+			, A.empno AS empno
+			, TO_CHAR(A.WRITNG_TM, 'YYYY-MM-dd HH24:MI') AS writngTm
+			, A.UPDT_EMPNO AS updtEmpno
+			, TO_CHAR(A.UPDT_TM, 'YYYY-MM-dd HH24:MI') AS updtTm
+			, A.bbt_cn AS bbtCn
+			, B.NM
+			, B.FILE_NO AS photoNo
+			, C.FILE_COURS AS photoCours
+			, C.FILE_NM AS photoNm
+		FROM
+			tb_answer A, TB_EMPL B, TB_FILE C
+		WHERE A.empno = B.EMPNO
+			AND cmmnty_no = #{cmmntyNo}
+			AND bbs_no = 2
+			AND bbsctt_no = #{bbscttNo}
+			AND B.FILE_NO = C.FILE_NO
+		ORDER BY ANSWER_NO
+	</select>
+
+</mapper>
