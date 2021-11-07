@@ -56,5 +56,37 @@
 - FullCalendar eventClick 함수를 이용하여 일정 상세 조회를 할 수 있고 상세조회 시 일정을 수정·삭제할 수 있음
 - 사용자가 원하는 카테고리를 생성, 카테고리 색 변경, 카테고리 삭제(카테고리 삭제 시 해당 카테고리와 관련된 모든 일정 삭제)
 - FullCalendar eventDidMount 함수를 이용하여 사용자가 선택한 카테고리별 일정을 조회
+<br><br>
+
+### 5. ToDO+(업무공유)
+![todo - 홈](https://user-images.githubusercontent.com/80368534/140640824-b0f14a48-1e72-4f89-9051-b762bdeac033.PNG)
+![todo - 보드상세](https://user-images.githubusercontent.com/80368534/140640763-268c98aa-0163-4de2-b467-dc1953984633.PNG)
+- 조직도를 활용해 공유자를 설정할 수 있고, 사용자가 처리할 업무를 공유자들과 함께 조회·등록·수정·삭제를 할 수 있는 기능
+- 사용자와 공유자의 권한은 동일함
+- 보드 → 카드 메뉴 → 카드의 단계적 구성
+- Ajax만을 활용한 CRUD 기능 구현
+- 파일 업로드 및 다운로드가 가능하며 이미지 파일 첨부 시, 미리보기 기능 구현
+<br><br>
+
+### 6. 설문
+![설문 - 홈](https://user-images.githubusercontent.com/80368534/140640875-37654bf5-f535-4d26-9765-37e816f4b156.PNG)
+![설문 - 설문작성](https://user-images.githubusercontent.com/80368534/140640879-70eb7556-8883-4402-9bc7-d36a2c0cd41c.PNG)
+![설문 - 설문작성3](https://user-images.githubusercontent.com/80368534/140640886-48fcc36a-f8bb-4b0e-9b09-bc4fa269e905.PNG)
+![설문 - 설문작성4](https://user-images.githubusercontent.com/80368534/140640889-aedf1997-f718-41f2-827b-541510afcf22.PNG)
+![설문 - 설문작성2](https://user-images.githubusercontent.com/80368534/140640893-7857e4ef-5647-4fe0-afe1-c46468a3ccbc.PNG)
+- 사용자가 설문 대상자들을 설정하고 설문을 등록하여 결과를 확인할 수 있음
+- 설문 대상자의 경우 조직도를 활용해 설정
+- 설문 결과 공개 여부/댓글 작성 여부/참여 후 수정 여부에 체크한 결과에 따라 각 조건에 맞는 설문이 생성됨
+- 파일 업로드 및 다운로드가 가능하며 이미지 파일 첨부 시, 미리보기 기능 구현
+- 문항은 선택형·점수형 2가지
+- 추가한 문항은 등록 전 수정 및 삭제 가능
+<br>
+
+![설문 - 설문상세조회](https://user-images.githubusercontent.com/80368534/140640943-543eca09-d716-4a98-8dd6-eae86bdcba10.PNG)
+![설문 - 설문상세조회2](https://user-images.githubusercontent.com/80368534/140640945-a4bef2ec-a285-4b36-af08-bfd0b95ff591.PNG)
+- 선택형 문항의 경우 해당 문항 결과를 Chart js API를 활용하여 도넛차트로 한 눈에 확인
+- 설문 상세 페이지에서 댓글 작성·수정·삭제 기능
+- 설문 작성자는 설문의 상태를 진행/중지/마감 상태로 변경할 수 있고, 수정 중이거나 마감 상태 시 설문 응답 불가
+
 
 
